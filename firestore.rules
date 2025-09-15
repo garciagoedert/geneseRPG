@@ -2,9 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Usuários só podem ler e escrever seus próprios dados.
+    // Usuários podem criar seu próprio documento e ler/atualizar seus próprios dados.
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow read, update: if request.auth != null && request.auth.uid == userId;
     }
 
     // GMs podem ler/escrever qualquer ficha. Jogadores só podem as suas.
