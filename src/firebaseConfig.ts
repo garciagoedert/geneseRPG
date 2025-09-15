@@ -22,5 +22,5 @@ const app = initializeApp(firebaseConfig);
 // Exportando os serviços do Firebase para serem usados em outras partes da aplicação
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const realtimeDB = getDatabase(app);
+export const realtimeDB = getDatabase(app, "https://geneserpg-b21d6-default-rtdb.firebaseio.com/");
 export const storage = getStorage(app);

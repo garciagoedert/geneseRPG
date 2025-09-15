@@ -21,6 +21,8 @@ const DiceRoller: React.FC = () => {
   const historyEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!currentUser) return;
+
     const historyRef = ref(realtimeDB, `rolls_history/${SALA_DE_TESTE_ID}`);
     const recentRollsQuery = query(historyRef, limitToLast(20));
 
@@ -34,11 +36,13 @@ const DiceRoller: React.FC = () => {
         // Ordena no cliente para garantir a ordem cronológica
         history.sort((a, b) => a.timestamp - b.timestamp);
         setRollHistory(history);
+      } else {
+        setRollHistory([]);
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => {
     historyEndRef.current?.scrollIntoView({ behavior: 'smooth' });

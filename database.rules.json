@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "rolls_history": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}
