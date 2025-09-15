@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ref, onValue, push, serverTimestamp, query, orderByChild, limitToLast } from 'firebase/database';
+import { ref, onValue, push, serverTimestamp, query, limitToLast } from 'firebase/database';
 import { realtimeDB } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import './DiceRoller.css';

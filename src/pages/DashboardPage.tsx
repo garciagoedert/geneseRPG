@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { auth, db } from '../firebaseConfig';
-import { signOut } from 'firebase/auth';
+import { db } from '../firebaseConfig';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import DiceRoller from '../components/DiceRoller';
@@ -59,16 +58,6 @@ const DashboardPage: React.FC = () => {
 
     fetchData();
   }, [currentUser]);
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      // O onAuthStateChanged no AuthContext cuidará do redirecionamento
-    } catch (error) {
-      console.error('Erro ao fazer logout:', error);
-      alert('Não foi possível fazer logout.');
-    }
-  };
 
   if (loading) {
     return <div>Carregando...</div>;
