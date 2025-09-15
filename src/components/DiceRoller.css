@@ -1,0 +1,74 @@
+.dice-roller-container {
+  background-color: var(--secondary-color);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.dice-roller-container h3 {
+  margin-top: 0;
+  font-family: 'Cinzel', serif;
+  color: var(--primary-color);
+}
+
+.dice-buttons button {
+  background-color: var(--background-color);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-family: 'Roboto', sans-serif;
+  cursor: pointer;
+  font-size: 1rem;
+  margin: 0.25rem;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.dice-buttons button:hover {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+}
+
+.last-roll {
+  margin-top: 1.5rem;
+  font-size: 1.2rem;
+}
+
+.last-roll strong {
+  color: var(--primary-color);
+  font-size: 1.5rem;
+}
+
+.roll-history {
+  margin-top: 1.5rem;
+  text-align: left;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  background-color: var(--background-color);
+}
+
+.roll-history h4 {
+  margin-top: 0;
+  font-family: 'Cinzel', serif;
+  color: var(--primary-color);
+  text-align: center;
+}
+
+.roll-history ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.roll-history li {
+  padding: 0.5rem;
+  border-bottom: 1px solid #444;
+}
+
+.roll-history li:last-child {
+  border-bottom: none;
+}

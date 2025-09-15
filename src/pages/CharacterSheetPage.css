@@ -1,0 +1,103 @@
+.sheet-container {
+  display: flex;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.sheet-sidebar {
+  width: 250px;
+  flex-shrink: 0;
+}
+
+.sheet-main {
+  flex-grow: 1;
+}
+
+.sheet-section {
+  background-color: var(--secondary-color);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.sheet-section h2 {
+  margin-top: 0;
+  font-family: 'Cinzel', serif;
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.attributes-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.attributes-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #444;
+}
+
+.attributes-list li:last-child {
+  border-bottom: none;
+}
+
+.attributes-list strong {
+  color: var(--text-color);
+}
+
+.attributes-list span {
+  font-size: 1.2rem;
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.sheet-header h1 {
+  font-family: 'Cinzel', serif;
+  font-size: 3rem;
+  margin: 0;
+  color: var(--primary-color);
+}
+
+.sheet-header p {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #ccc;
+}
+
+.sheet-pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background-color: var(--background-color);
+  padding: 1rem;
+  border-radius: 4px;
+  font-family: 'Roboto', sans-serif;
+  color: var(--text-color);
+}
+
+.edit-button {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.edit-button:hover {
+  background-color: #c8a051;
+}
