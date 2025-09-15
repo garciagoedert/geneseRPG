@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 
 export interface UserWithRole extends User {
@@ -39,7 +39,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const userData = userDocSnap.data();
           setCurrentUser({ ...user, role: userData.role });
         } else {
-          // Se o documento não existir, defina uma role padrão.
+          // Se o documento não existir, crie um com a role padrão 'jogador'.
+          console.log('Documento do usuário não encontrado no Firestore! Criando um novo...');
+          const newUser = {
+            uid: user.uid,
+            email: user.email,
+            role: 'jogador',
+          };
+          await setDoc(doc(db, 'users', user.uid), newUser);
           setCurrentUser({ ...user, role: 'jogador' });
         }
       } else {
