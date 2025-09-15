@@ -101,3 +101,24 @@
 .edit-button:hover {
   background-color: #c8a051;
 }
+
+.link-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.link-list li {
+  margin-bottom: 0.5rem;
+}
+
+.link-list a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.link-list a:hover {
+  color: #c8a051;
+  text-decoration: underline;
+}

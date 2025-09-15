@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { collection, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import SpellSelector from '../components/SpellSelector';
+import ItemSelector from '../components/ItemSelector';
 import './Auth.css'; // Reutilizando o CSS da autenticação
 
 const CreateCharacterPage: React.FC = () => {
@@ -19,9 +21,9 @@ const CreateCharacterPage: React.FC = () => {
     wisdom: 10,
     charisma: 10,
   });
-  const [inventory, setInventory] = useState('');
-  const [abilities, setAbilities] = useState('');
-  const [spells, setSpells] = useState('');
+  const [inventory, setInventory] = useState<string[]>([]);
+  const [abilities, setAbilities] = useState<string[]>([]); // Agora um array de IDs
+  const [spells, setSpells] = useState<string[]>([]); // Agora um array de IDs
   const [error, setError] = useState<string | null>(null);
 
   const handleAttributeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,9 +46,9 @@ const CreateCharacterPage: React.FC = () => {
         class: characterClass,
         level,
         attributes,
-        inventory,
-        abilities,
-        spells,
+        inventory: inventory,
+        abilities: abilities, // Salva o array de IDs
+        spells: spells, // Salva o array de IDs
         ownerId: currentUser.uid,
         createdAt: new Date(),
       });
@@ -107,30 +109,20 @@ const CreateCharacterPage: React.FC = () => {
             </div>
           ))}
         </fieldset>
-        <div>
-          <label htmlFor="abilities">Habilidades e Talentos</label>
-          <textarea
-            id="abilities"
-            value={abilities}
-            onChange={(e) => setAbilities(e.target.value)}
-          />
-        </div>
-        <div>
-          <label htmlFor="spells">Magias</label>
-          <textarea
-            id="spells"
-            value={spells}
-            onChange={(e) => setSpells(e.target.value)}
-          />
-        </div>
-        <div>
-          <label htmlFor="inventory">Inventário</label>
-          <textarea
-            id="inventory"
-            value={inventory}
-            onChange={(e) => setInventory(e.target.value)}
-          />
-        </div>
+        <SpellSelector
+          selectedIds={abilities}
+          onChange={setAbilities}
+          typeToShow="habilidade"
+        />
+        <SpellSelector
+          selectedIds={spells}
+          onChange={setSpells}
+          typeToShow="magia"
+        />
+        <ItemSelector
+          selectedIds={inventory}
+          onChange={setInventory}
+        />
         <button type="submit">Salvar Ficha</button>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}

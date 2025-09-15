@@ -61,11 +61,12 @@ const GMViewPage: React.FC = () => {
       <div className="character-list">
         {characters.length > 0 ? (
           characters.map(char => (
-            <div key={char.id} className="character-card">
-              <h3>{char.name}</h3>
-              <p>{char.class} - Nível {char.level}</p>
-              <Link to={`/character/${char.id}`}>Ver Ficha</Link>
-            </div>
+            <Link to={`/character/${char.id}`} key={char.id} className="character-card-link">
+              <div className="character-card">
+                <h3>{char.name}</h3>
+                <p>{char.class} - Nível {char.level}</p>
+              </div>
+            </Link>
           ))
         ) : (
           <p>Nenhuma ficha de personagem encontrada.</p>

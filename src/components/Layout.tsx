@@ -31,6 +31,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <NavLink to="/dashboard">Dashboard</NavLink>
             <NavLink to="/create-character">Criar Ficha</NavLink>
             <NavLink to="/map">Mapa</NavLink>
+            <NavLink to="/bestiary">Bestiário</NavLink>
+            <NavLink to="/spells">Magias e Habilidades</NavLink>
+            <NavLink to="/items">Itens</NavLink>
             {currentUser?.role === 'gm' && (
               <NavLink to="/gm-view">Visão do Mestre</NavLink>
             )}

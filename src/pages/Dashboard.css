@@ -46,3 +46,33 @@
   color: var(--text-color);
   font-family: 'Roboto', sans-serif;
 }
+
+.character-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.character-card {
+  background-color: var(--secondary-color);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.character-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.character-card h3 {
+  margin-top: 0;
+  color: var(--primary-color);
+  font-family: 'Cinzel', serif;
+}
+
+.character-card p {
+  margin-bottom: 0;
+  color: var(--text-color);
+}

@@ -24,7 +24,8 @@
 }
 
 .auth-form input,
-.auth-form select {
+.auth-form select,
+.auth-form textarea {
   width: 100%;
   padding: 0.8rem;
   border: 1px solid var(--primary-color);

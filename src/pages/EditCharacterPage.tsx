@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigate, useParams } from 'react-router-dom';
+import SpellSelector from '../components/SpellSelector';
+import ItemSelector from '../components/ItemSelector';
 import './Auth.css'; // Reutilizando o CSS
 
 const EditCharacterPage: React.FC = () => {
@@ -20,9 +22,9 @@ const EditCharacterPage: React.FC = () => {
     wisdom: 10,
     charisma: 10,
   });
-  const [inventory, setInventory] = useState('');
-  const [abilities, setAbilities] = useState('');
-  const [spells, setSpells] = useState('');
+  const [inventory, setInventory] = useState<string[]>([]);
+  const [abilities, setAbilities] = useState<string[]>([]);
+  const [spells, setSpells] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -34,7 +36,7 @@ const EditCharacterPage: React.FC = () => {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          if (data.ownerId !== currentUser?.uid) {
+          if (data.ownerId !== currentUser?.uid && currentUser?.role !== 'gm') {
             setError('Você não tem permissão para editar esta ficha.');
             return;
           }
@@ -145,30 +147,20 @@ const EditCharacterPage: React.FC = () => {
             </div>
           ))}
         </fieldset>
-        <div>
-          <label htmlFor="abilities">Habilidades e Talentos</label>
-          <textarea
-            id="abilities"
-            value={abilities}
-            onChange={(e) => setAbilities(e.target.value)}
-          />
-        </div>
-        <div>
-          <label htmlFor="spells">Magias</label>
-          <textarea
-            id="spells"
-            value={spells}
-            onChange={(e) => setSpells(e.target.value)}
-          />
-        </div>
-        <div>
-          <label htmlFor="inventory">Inventário</label>
-          <textarea
-            id="inventory"
-            value={inventory}
-            onChange={(e) => setInventory(e.target.value)}
-          />
-        </div>
+        <SpellSelector
+          selectedIds={abilities}
+          onChange={setAbilities}
+          typeToShow="habilidade"
+        />
+        <SpellSelector
+          selectedIds={spells}
+          onChange={setSpells}
+          typeToShow="magia"
+        />
+        <ItemSelector
+          selectedIds={inventory}
+          onChange={setInventory}
+        />
         <button type="submit">Salvar Alterações</button>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}

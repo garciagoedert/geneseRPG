@@ -8,6 +8,7 @@ import { getStorage } from "firebase/storage";
 const firebaseConfig = {
   apiKey: "AIzaSyBdH1ZoPSnCQNFiv7uNoYxBqZuqwfb6gxw",
   authDomain: "geneserpg-b21d6.firebaseapp.com",
+  databaseURL: "https://geneserpg-b21d6-default-rtdb.firebaseio.com/",
   projectId: "geneserpg-b21d6",
   storageBucket: "geneserpg-b21d6.appspot.com",
   messagingSenderId: "655791317409",
