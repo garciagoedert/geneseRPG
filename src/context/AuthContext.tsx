@@ -39,7 +39,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const userData = userDocSnap.data();
           setCurrentUser({ ...user, role: userData.role });
         } else {
-          setCurrentUser(user); // Usuário sem dados adicionais
+          // Se o documento não existir, defina uma role padrão.
+          setCurrentUser({ ...user, role: 'jogador' });
         }
       } else {
         setCurrentUser(null);
