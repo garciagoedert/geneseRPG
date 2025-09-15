@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ref, onValue, push, serverTimestamp, query, limitToLast } from 'firebase/database';
+import { ref, onValue, push, serverTimestamp, query, limitToLast, remove } from 'firebase/database';
 import { realtimeDB } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import './DiceRoller.css';
@@ -63,6 +63,21 @@ const DiceRoller: React.FC = () => {
     });
   };
 
+  const clearHistory = () => {
+    if (currentUser?.role !== 'gm') {
+      alert('Apenas o GM pode limpar o histórico.');
+      return;
+    }
+    const historyRef = ref(realtimeDB, `rolls_history/${SALA_DE_TESTE_ID}`);
+    remove(historyRef)
+      .then(() => {
+        console.log('Histórico de rolagens limpo com sucesso.');
+      })
+      .catch((error) => {
+        console.error("Erro ao limpar o histórico de rolagens: ", error);
+      });
+  };
+
   return (
     <div className="dice-roller-container">
       <h3>Rolagem de Dados</h3>
@@ -76,6 +91,11 @@ const DiceRoller: React.FC = () => {
       </div>
       <div className="roll-history">
         <h4>Histórico de Rolagens</h4>
+        {currentUser?.role === 'gm' && (
+          <button onClick={clearHistory} className="clear-history-button">
+            Limpar Histórico
+          </button>
+        )}
         <ul>
           {rollHistory.map((roll) => (
             <li key={roll.key}>

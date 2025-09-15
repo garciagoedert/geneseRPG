@@ -72,3 +72,23 @@
 .roll-history li:last-child {
   border-bottom: none;
 }
+
+.clear-history-button {
+  background-color: #a83232; /* Um tom de vermelho escuro */
+  color: #fff;
+  border: 1px solid #872828;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-family: 'Roboto', sans-serif;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  transition: background-color 0.3s;
+}
+
+.clear-history-button:hover {
+  background-color: #c94e4e; /* Vermelho mais claro no hover */
+}
