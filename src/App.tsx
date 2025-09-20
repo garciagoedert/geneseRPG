@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
+import MesaPage from './pages/MesaPage';
 import CreateCharacterPage from './pages/CreateCharacterPage';
 import MapPage from './pages/MapPage';
 import CharacterSheetPage from './pages/CharacterSheetPage';
@@ -18,6 +18,9 @@ import ItemsPage from './pages/ItemsPage';
 import AddItemPage from './pages/AddItemPage';
 import EditItemPage from './pages/EditItemPage';
 import ItemDetailPage from './pages/ItemDetailPage';
+import WikiPage from './pages/WikiPage';
+import AddWikiEntryPage from './pages/AddWikiEntryPage';
+import EditWikiEntryPage from './pages/EditWikiEntryPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -36,7 +39,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Layout>
-                <DashboardPage />
+                <MesaPage />
               </Layout>
             </ProtectedRoute>
           }
@@ -197,6 +200,36 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <ItemDetailPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/wiki"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <WikiPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-wiki-entry"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <AddWikiEntryPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/edit-wiki-entry/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <EditWikiEntryPage />
               </Layout>
             </ProtectedRoute>
           }

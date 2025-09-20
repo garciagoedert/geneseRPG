@@ -4,7 +4,7 @@ import { db } from '../firebaseConfig';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import DiceRoller from '../components/DiceRoller';
-import './Dashboard.css';
+import './Mesa.css';
 
 interface CharacterSheet {
   id: string;
@@ -18,7 +18,7 @@ interface UserData {
   uid: string;
 }
 
-const DashboardPage: React.FC = () => {
+const MesaPage: React.FC = () => {
   const { currentUser } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [characterSheets, setCharacterSheets] = useState<CharacterSheet[]>([]);
@@ -64,7 +64,7 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="dashboard-container">
+    <div className="mesa-container">
       {userData ? (
         <div>
           <h2>Minhas Fichas</h2>
@@ -92,4 +92,4 @@ const DashboardPage: React.FC = () => {
   );
 };
 
-export default DashboardPage;
+export default MesaPage;

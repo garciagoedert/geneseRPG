@@ -100,6 +100,15 @@ const CreateCharacterPage: React.FC = () => {
     }
   };
 
+  const attributeTranslations: { [key: string]: string } = {
+    strength: 'Força',
+    dexterity: 'Destreza',
+    constitution: 'Constituição',
+    intelligence: 'Inteligência',
+    wisdom: 'Sabedoria',
+    charisma: 'Carisma',
+  };
+
   return (
     <div className="sheet-creation-container">
       <h1>Criar Ficha</h1>
@@ -148,7 +157,7 @@ const CreateCharacterPage: React.FC = () => {
           <legend>Atributos</legend>
           {Object.entries(attributes).map(([key, value]) => (
             <div key={key}>
-              <label htmlFor={key}>{key.charAt(0).toUpperCase() + key.slice(1)}</label>
+              <label htmlFor={key}>{attributeTranslations[key] || key}</label>
               <input
                 type="number"
                 id={key}

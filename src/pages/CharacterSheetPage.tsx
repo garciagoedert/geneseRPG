@@ -91,6 +91,15 @@ const CharacterSheetPage: React.FC = () => {
     return <div>Ficha não encontrada.</div>;
   }
 
+  const attributeTranslations: { [key: string]: string } = {
+    strength: 'Força',
+    dexterity: 'Destreza',
+    constitution: 'Constituição',
+    intelligence: 'Inteligência',
+    wisdom: 'Sabedoria',
+    charisma: 'Carisma',
+  };
+
   return (
     <div className="sheet-container">
       <aside className="sheet-sidebar">
@@ -99,7 +108,7 @@ const CharacterSheetPage: React.FC = () => {
           <ul className="attributes-list">
             {Object.entries(sheetData.attributes).map(([key, value]) => (
               <li key={key}>
-                <strong>{key.charAt(0).toUpperCase() + key.slice(1)}</strong>
+                <strong>{attributeTranslations[key] || key}</strong>
                 <span>{value}</span>
               </li>
             ))}

@@ -1,0 +1,110 @@
+.mesa-container {
+  padding: 20px;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.mesa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--primary-color);
+  padding-bottom: 1rem;
+}
+
+.mesa-header h1 {
+  color: var(--primary-color);
+  font-family: 'Cinzel', serif;
+}
+
+.mesa-header button {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.search-bar {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  border: 1px solid var(--secondary-color);
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  font-size: 1rem;
+}
+
+.search-bar::placeholder {
+  color: #aaa;
+}
+
+.character-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.character-card {
+  background-color: var(--secondary-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.character-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.card-content {
+  padding: 15px;
+  flex-grow: 1;
+}
+
+.card-content h3 {
+  color: var(--primary-color);
+  font-family: 'Cinzel', serif;
+  margin-top: 0;
+}
+
+.gm-controls {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
+  background-color: #1e1e1e; /* Um pouco mais escuro que o secondary */
+}
+
+.control-button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--background-color);
+  background-color: var(--primary-color);
+  font-size: 0.9rem;
+}
+
+.gm-controls button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  background-color: #444;
+  color: var(--text-color);
+}
+
+.gm-controls button.delete {
+  background-color: #a83232;
+  color: white;
+}

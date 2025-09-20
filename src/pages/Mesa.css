@@ -77,3 +77,19 @@
   margin-bottom: 0;
   color: var(--text-color);
 }
+
+.delete-button {
+  background-color: #c0392b;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  margin-top: 1rem;
+  align-self: flex-end;
+}
+
+.delete-button:hover {
+  background-color: #e74c3c;
+}

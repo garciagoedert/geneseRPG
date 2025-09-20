@@ -3,7 +3,6 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
-import './Dashboard.css'; // Reutilizando estilos
 import './BestiaryPage.css'; // Novo CSS
 
 interface Creature {
@@ -76,8 +75,8 @@ const BestiaryPage: React.FC = () => {
   }
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
+    <div className="mesa-container">
+      <div className="mesa-header">
         <h1>Bestiário</h1>
         {currentUser?.role === 'gm' && (
           <Link to="/add-creature">

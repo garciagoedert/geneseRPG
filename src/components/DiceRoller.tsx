@@ -9,14 +9,17 @@ const SALA_DE_TESTE_ID = 'sala_teste_01';
 
 interface Roll {
   key: string;
-  die: string;
-  result: number;
+  formula: string;
+  individualResults: number[];
+  modifier: number;
+  totalResult: number;
   userName: string;
   timestamp: number;
 }
 
 const DiceRoller: React.FC = () => {
   const { currentUser } = useAuth();
+  const [diceFormula, setDiceFormula] = useState('');
   const [rollHistory, setRollHistory] = useState<Roll[]>([]);
   const historyEndRef = useRef<HTMLDivElement>(null);
 
@@ -48,19 +51,64 @@ const DiceRoller: React.FC = () => {
     historyEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [rollHistory]);
 
-  const rollDie = (die: string, sides: number) => {
+  const parseDiceFormula = (formula: string): { count: number; sides: number; modifier: number } => {
+    formula = formula.toLowerCase().replace(/\s/g, ''); // Remove espaços e converte para minúsculas
+    let count = 1;
+    let sides = 20;
+    let modifier = 0;
+
+    // Extrai o modificador
+    const modifierMatch = formula.match(/[+-]\d+$/);
+    if (modifierMatch) {
+      modifier = parseInt(modifierMatch[0], 10);
+      formula = formula.slice(0, modifierMatch.index);
+    }
+
+    // Extrai a contagem e os lados (ex: "2d8")
+    const diceMatch = formula.match(/(\d+)?d(\d+)/);
+    if (diceMatch) {
+      count = diceMatch[1] ? parseInt(diceMatch[1], 10) : 1;
+      sides = parseInt(diceMatch[2], 10);
+    }
+
+    return { count, sides, modifier };
+  };
+
+  const handleRoll = () => {
     if (!currentUser) {
       alert('Você precisa estar logado para rolar os dados.');
       return;
     }
-    const result = Math.floor(Math.random() * sides) + 1;
+    if (!diceFormula) {
+      alert('Por favor, insira uma fórmula de dados.');
+      return;
+    }
+
+    const { count, sides, modifier } = parseDiceFormula(diceFormula);
+
+    if (count <= 0 || sides <= 0) {
+      alert('Fórmula de dados inválida.');
+      return;
+    }
+
+    const individualResults: number[] = [];
+    for (let i = 0; i < count; i++) {
+      individualResults.push(Math.floor(Math.random() * sides) + 1);
+    }
+
+    const sumOfRolls = individualResults.reduce((sum, current) => sum + current, 0);
+    const totalResult = sumOfRolls + modifier;
+
     const historyRef = ref(realtimeDB, `rolls_history/${SALA_DE_TESTE_ID}`);
     push(historyRef, {
-      die,
-      result,
+      formula: diceFormula,
+      individualResults,
+      modifier,
+      totalResult,
       userName: currentUser.displayName || currentUser.email,
       timestamp: serverTimestamp(),
     });
+    setDiceFormula(''); // Limpa o input após a rolagem
   };
 
   const clearHistory = () => {
@@ -81,13 +129,23 @@ const DiceRoller: React.FC = () => {
   return (
     <div className="dice-roller-container">
       <h3>Rolagem de Dados</h3>
+      <div className="dice-input-area">
+        <input
+          type="text"
+          value={diceFormula}
+          onChange={(e) => setDiceFormula(e.target.value)}
+          placeholder="Ex: 2d6+3"
+          onKeyPress={(e) => e.key === 'Enter' && handleRoll()}
+        />
+        <button onClick={handleRoll}>Rolar</button>
+      </div>
       <div className="dice-buttons">
-        <button onClick={() => rollDie('d4', 4)}>d4</button>
-        <button onClick={() => rollDie('d6', 6)}>d6</button>
-        <button onClick={() => rollDie('d8', 8)}>d8</button>
-        <button onClick={() => rollDie('d10', 10)}>d10</button>
-        <button onClick={() => rollDie('d12', 12)}>d12</button>
-        <button onClick={() => rollDie('d20', 20)}>d20</button>
+        <button onClick={() => setDiceFormula('1d4')}>d4</button>
+        <button onClick={() => setDiceFormula('1d6')}>d6</button>
+        <button onClick={() => setDiceFormula('1d8')}>d8</button>
+        <button onClick={() => setDiceFormula('1d10')}>d10</button>
+        <button onClick={() => setDiceFormula('1d12')}>d12</button>
+        <button onClick={() => setDiceFormula('1d20')}>d20</button>
       </div>
       <div className="roll-history">
         <h4>Histórico de Rolagens</h4>
@@ -99,7 +157,11 @@ const DiceRoller: React.FC = () => {
         <ul>
           {rollHistory.map((roll) => (
             <li key={roll.key}>
-              <strong>{roll.userName}</strong> rolou {roll.result} ({roll.die})
+              <strong>{roll.userName}</strong> rolou {roll.totalResult} ({roll.formula})
+              <span className="roll-details">
+                {`[${roll.individualResults.join(', ')}]`}
+                {roll.modifier !== 0 && (roll.modifier > 0 ? ` + ${roll.modifier}` : ` - ${Math.abs(roll.modifier)}`)}
+              </span>
             </li>
           ))}
         </ul>

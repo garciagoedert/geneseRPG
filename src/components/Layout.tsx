@@ -28,12 +28,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <h2>Gênese RPG</h2>
           </div>
           <nav className="sidebar-nav">
-            <NavLink to="/dashboard">Dashboard</NavLink>
+            <NavLink to="/dashboard">Mesa</NavLink>
             <NavLink to="/create-character">Criar Ficha</NavLink>
             <NavLink to="/map">Mapa</NavLink>
             <NavLink to="/bestiary">Bestiário</NavLink>
             <NavLink to="/spells">Magias e Habilidades</NavLink>
             <NavLink to="/items">Itens</NavLink>
+            <NavLink to="/wiki">Wiki</NavLink>
             {currentUser?.role === 'gm' && (
               <NavLink to="/gm-view">Visão do Mestre</NavLink>
             )}
