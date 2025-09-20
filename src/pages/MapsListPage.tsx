@@ -14,6 +14,7 @@ interface MapData {
   imageUrl?: string;
   description?: string;
   campaignId?: string;
+  visibleToPlayers?: boolean;
 }
 
 interface UserData {
@@ -45,23 +46,16 @@ const MapsListPage: React.FC = () => {
     const fetchMaps = async () => {
       if (!currentUser || !userData) return;
 
-      const campaignId = localStorage.getItem('selectedCampaignId');
-      if (!campaignId) {
-        setLoading(false);
-        return;
-      }
-
       try {
         let mapsQuery;
         if (userData.role === 'gm') {
-          mapsQuery = query(collection(db, "maps"), where("campaignId", "==", campaignId));
+          // GMs veem todos os mapas que eles criaram
+          mapsQuery = query(collection(db, "maps"), where("ownerId", "==", currentUser.uid));
         } else {
-          mapsQuery = query(
-            collection(db, "maps"),
-            where("campaignId", "==", campaignId),
-            where("visibleToPlayers", "==", true)
-          );
+          // Players veem todos os mapas visíveis
+          mapsQuery = query(collection(db, "maps"), where("visibleToPlayers", "==", true));
         }
+        
         const querySnapshot = await getDocs(mapsQuery);
         const mapsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MapData));
         setMaps(mapsList);
@@ -87,6 +81,22 @@ const MapsListPage: React.FC = () => {
     setSelectedMap(null);
   };
 
+  const toggleMapVisibility = async (map: MapData) => {
+    if (!map) return;
+    const newVisibility = !map.visibleToPlayers;
+    try {
+      const mapRef = doc(db, "maps", map.id);
+      await updateDoc(mapRef, {
+        visibleToPlayers: newVisibility
+      });
+      const updatedMaps = maps.map(m => m.id === map.id ? { ...m, visibleToPlayers: newVisibility } : m);
+      setMaps(updatedMaps);
+      setSelectedMap({ ...map, visibleToPlayers: newVisibility }); // Atualiza o estado do mapa selecionado também
+    } catch (error) {
+      console.error("Erro ao alterar a visibilidade do mapa:", error);
+    }
+  };
+
   const createNewMap = async () => {
     const mapName = prompt("Digite o nome do novo mapa:");
     if (!mapName) return;
@@ -95,26 +105,19 @@ const MapsListPage: React.FC = () => {
     const description = prompt("Digite uma breve descrição ou história para o mapa (opcional):");
 
     if (currentUser) {
-      const campaignId = localStorage.getItem('selectedCampaignId');
-      if (!campaignId) {
-        alert("Nenhuma campanha selecionada!");
-        return;
-      }
       try {
         const newMapRef = await addDoc(collection(db, "maps"), {
           name: mapName,
           ownerId: currentUser.uid,
-          campaignId: campaignId,
           imageUrl: imageUrl || '',
           description: description || '',
-          visibleToPlayers: false, // Por padrão, não é visível
+          visibleToPlayers: false,
           mapState: JSON.stringify({ tokens: [], assets: [], lines: [] })
         });
         const newMapData = { 
           id: newMapRef.id, 
           name: mapName, 
-          ownerId: currentUser.uid, 
-          campaignId: campaignId,
+          ownerId: currentUser.uid,
           imageUrl: imageUrl || '', 
           description: description || '' 
         };
@@ -148,12 +151,13 @@ const MapsListPage: React.FC = () => {
 
     try {
       const mapRef = doc(db, "maps", mapId);
-      await updateDoc(mapRef, {
+      const updateData = {
         name: newName,
         imageUrl: newImageUrl || '',
         description: newDescription || ''
-      });
-      setMaps(maps.map(m => m.id === mapId ? { ...m, name: newName, imageUrl: newImageUrl || '', description: newDescription || '' } : m));
+      };
+      await updateDoc(mapRef, updateData);
+      setMaps(maps.map(m => m.id === mapId ? { ...m, ...updateData } : m));
       handleCloseModal();
     } catch (error) {
       console.error("Erro ao editar o mapa:", error);
@@ -167,8 +171,8 @@ const MapsListPage: React.FC = () => {
   return (
     <div className="maps-list-container">
       <div className="mesa-header">
-        <h1>Meus Mapas</h1>
-        <button onClick={createNewMap}>Criar Novo Mapa</button>
+        <h1>Mapas da Campanha</h1>
+        {userData?.role === 'gm' && <button onClick={createNewMap}>Criar Novo Mapa</button>}
       </div>
       {maps.length > 0 ? (
         <div className="character-list">
@@ -190,7 +194,7 @@ const MapsListPage: React.FC = () => {
           ))}
         </div>
       ) : (
-        <p>Você ainda não criou nenhum mapa.</p>
+        <p>Nenhum mapa encontrado para esta campanha.</p>
       )}
 
       {selectedMap && (
@@ -201,15 +205,22 @@ const MapsListPage: React.FC = () => {
           <Link to={`/map/${selectedMap.id}`} className="control-button">
             Abrir Mapa Interativo
           </Link>
-          <button onClick={() => editMapDetails(selectedMap.id)} className="control-button">
-            Editar Detalhes
-          </button>
-          <button onClick={() => {
-            deleteMap(selectedMap.id);
-            handleCloseModal();
-          }} className="control-button delete">
-            Excluir Mapa
-          </button>
+          {userData?.role === 'gm' && (
+            <>
+              <button onClick={() => toggleMapVisibility(selectedMap)} className="control-button">
+                {selectedMap.visibleToPlayers ? 'Ocultar dos Players' : 'Tornar Visível'}
+              </button>
+              <button onClick={() => editMapDetails(selectedMap.id)} className="control-button">
+                Editar Detalhes
+              </button>
+              <button onClick={() => {
+                deleteMap(selectedMap.id);
+                handleCloseModal();
+              }} className="control-button delete">
+                Excluir Mapa
+              </button>
+            </>
+          )}
         </GMActionModal>
       )}
     </div>

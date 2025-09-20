@@ -54,25 +54,18 @@ const MesaPage: React.FC = () => {
           });
           setCharacterSheets(sheets);
 
-          const campaignId = localStorage.getItem('selectedCampaignId');
-          if (campaignId) {
-            let mapsQuery;
-            if (userData.role === 'gm') {
-              mapsQuery = query(collection(db, "maps"), where("campaignId", "==", campaignId));
-            } else {
-              mapsQuery = query(
-                collection(db, "maps"),
-                where("campaignId", "==", campaignId),
-                where("visibleToPlayers", "==", true)
-              );
-            }
-            const mapsSnapshot = await getDocs(mapsQuery);
-            const mapsList: MapData[] = [];
-            mapsSnapshot.forEach((doc) => {
-              mapsList.push({ id: doc.id, ...doc.data() } as MapData);
-            });
-            setMaps(mapsList);
+          let mapsQuery;
+          if (userData.role === 'gm') {
+            mapsQuery = query(collection(db, "maps"), where("ownerId", "==", currentUser.uid));
+          } else {
+            mapsQuery = query(collection(db, "maps"), where("visibleToPlayers", "==", true));
           }
+          const mapsSnapshot = await getDocs(mapsQuery);
+          const mapsList: MapData[] = [];
+          mapsSnapshot.forEach((doc) => {
+            mapsList.push({ id: doc.id, ...doc.data() } as MapData);
+          });
+          setMaps(mapsList);
         } else {
           console.error("Documento do usuário não encontrado no Firestore!");
         }
