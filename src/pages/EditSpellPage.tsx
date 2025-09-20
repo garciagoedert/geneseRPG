@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, storage } from '../firebaseConfig'; // Import storage
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'; // Import storage functions
+import { db } from '../firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigate, useParams } from 'react-router-dom';
+import { convertGoogleDriveLink } from '../utils/imageUtils';
 import './Auth.css';
 
 const EditSpellPage: React.FC = () => {
@@ -15,17 +15,9 @@ const EditSpellPage: React.FC = () => {
   const [level, setLevel] = useState(0);
   const [description, setDescription] = useState('');
   const [visibleToPlayers, setVisibleToPlayers] = useState(false);
-  const [image, setImage] = useState<File | null>(null);
-  const [currentImageUrl, setCurrentImageUrl] = useState<string>('');
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [imageUrl, setImageUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
-    }
-  };
 
   useEffect(() => {
     if (!id) return;
@@ -40,7 +32,7 @@ const EditSpellPage: React.FC = () => {
           setLevel(data.level);
           setDescription(data.description);
           setVisibleToPlayers(data.visibleToPlayers);
-          setCurrentImageUrl(data.imageUrl || '');
+          setImageUrl(data.imageUrl || '');
         } else {
           setError('Não encontrado.');
         }
@@ -62,37 +54,9 @@ const EditSpellPage: React.FC = () => {
       return;
     }
 
-    let imageUrl = currentImageUrl;
-
-    if (image) {
-      const storageRef = ref(storage, `spellImages/${currentUser.uid}/${Date.now()}_${image.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, image);
-
-      try {
-        await new Promise<void>((resolve, reject) => {
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              setUploadProgress(progress);
-            },
-            (error) => {
-              console.error('Upload error:', error);
-              setError('Falha no upload da imagem.');
-              reject(error);
-            },
-            async () => {
-              imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve();
-            }
-          );
-        });
-      } catch (e) {
-        return; // Impede a atualização se o upload falhar
-      }
-    }
-
     try {
+      const finalImageUrl = convertGoogleDriveLink(imageUrl);
+
       const docRef = doc(db, 'spellsAndAbilities', id);
       await updateDoc(docRef, {
         name,
@@ -100,7 +64,7 @@ const EditSpellPage: React.FC = () => {
         level,
         description,
         visibleToPlayers,
-        imageUrl: imageUrl,
+        imageUrl: finalImageUrl,
       });
       navigate('/spells');
     } catch (e) {
@@ -131,15 +95,15 @@ const EditSpellPage: React.FC = () => {
           />
         </div>
         <div>
-          <label htmlFor="image">Imagem</label>
-          {currentImageUrl && <img src={currentImageUrl} alt="Imagem atual" style={{ width: '100px', display: 'block', marginBottom: '10px' }} />}
+          <label htmlFor="image">URL da Imagem</label>
+          {imageUrl && <img src={convertGoogleDriveLink(imageUrl)} alt="Imagem atual" style={{ width: '100px', display: 'block', marginBottom: '10px' }} />}
           <input
-            type="file"
+            type="text"
             id="image"
-            onChange={handleImageChange}
-            accept="image/*"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="https://exemplo.com/magia.png"
           />
-          {uploadProgress > 0 && <progress value={uploadProgress} max="100" />}
         </div>
         <div>
           <label htmlFor="type">Tipo</label>

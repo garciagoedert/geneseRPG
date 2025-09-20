@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db, storage } from '../firebaseConfig';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigate, useParams } from 'react-router-dom';
 import SpellSelector from '../components/SpellSelector';
 import ItemSelector from '../components/ItemSelector';
+import { convertGoogleDriveLink } from '../utils/imageUtils';
 import './Auth.css'; // Reutilizando o CSS
 
 const EditCharacterPage: React.FC = () => {
@@ -30,17 +30,10 @@ const EditCharacterPage: React.FC = () => {
   const [appearance, setAppearance] = useState('');
   const [personality, setPersonality] = useState('');
   const [notes, setNotes] = useState('');
-  const [image, setImage] = useState<File | null>(null);
-  const [currentImageUrl, setCurrentImageUrl] = useState<string>('');
-  const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
-    }
-  };
 
   useEffect(() => {
     if (!id) return;
@@ -79,7 +72,7 @@ const EditCharacterPage: React.FC = () => {
           setAppearance(data.appearance || '');
           setPersonality(data.personality || '');
           setNotes(data.notes || '');
-          setCurrentImageUrl(data.imageUrl || '');
+          setImageUrl(data.imageUrl || '');
         } else {
           setError('Ficha não encontrada.');
         }
@@ -106,35 +99,17 @@ const EditCharacterPage: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
-    setIsProcessingImage(true);
+    setLoading(true);
 
-    if (!currentUser) {
-      setError('Você precisa estar logado para editar um personagem.');
-      setIsProcessingImage(false);
+    if (!currentUser || !id) {
+      setError('Você precisa estar logado e ter um ID de ficha válido.');
+      setLoading(false);
       return;
-    }
-    if (!id) {
-      setError('ID da ficha não encontrado.');
-      setIsProcessingImage(false);
-      return;
-    }
-
-    let imageUrl = currentImageUrl;
-
-    if (image) {
-      try {
-        const imageRef = ref(storage, `character-images/${id}/${image.name}`);
-        await uploadBytes(imageRef, image);
-        imageUrl = await getDownloadURL(imageRef);
-      } catch (e) {
-        console.error('Erro no upload da imagem:', e);
-        setError('Falha ao fazer upload da imagem.');
-        setIsProcessingImage(false);
-        return;
-      }
     }
 
     try {
+      const finalImageUrl = convertGoogleDriveLink(imageUrl);
+
       const docRef = doc(db, 'characterSheets', id);
       await updateDoc(docRef, {
         name,
@@ -144,7 +119,7 @@ const EditCharacterPage: React.FC = () => {
         inventory,
         abilities,
         spells,
-        imageUrl: imageUrl,
+        imageUrl: finalImageUrl,
         history,
         appearance,
         personality,
@@ -153,8 +128,9 @@ const EditCharacterPage: React.FC = () => {
       navigate(`/character/${id}`);
     } catch (e) {
       setError('Não foi possível atualizar a ficha.');
+      console.error(e);
     } finally {
-      setIsProcessingImage(false);
+      setLoading(false);
     }
   };
 
@@ -196,16 +172,15 @@ const EditCharacterPage: React.FC = () => {
           />
         </div>
         <div>
-          <label htmlFor="image">Imagem do Personagem</label>
-          {currentImageUrl && <img src={currentImageUrl} alt="Imagem atual" style={{ width: '100px', display: 'block', marginBottom: '10px' }} />}
+          <label htmlFor="image">URL da Imagem do Personagem</label>
+          {imageUrl && <img src={convertGoogleDriveLink(imageUrl)} alt="Imagem atual" style={{ width: '100px', display: 'block', marginBottom: '10px' }} />}
           <input
-            type="file"
+            type="text"
             id="image"
-            onChange={handleImageChange}
-            accept="image/*"
-            disabled={isProcessingImage}
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="https://exemplo.com/personagem.png"
           />
-          {isProcessingImage && <p>Processando imagem...</p>}
         </div>
         <div>
           <label htmlFor="level">Nível</label>
@@ -289,8 +264,8 @@ const EditCharacterPage: React.FC = () => {
             onChange={(e) => setNotes(e.target.value)}
           />
         </div>
-        <button type="submit" disabled={isProcessingImage}>
-          {isProcessingImage ? 'Salvando...' : 'Salvar Alterações'}
+        <button type="submit" disabled={loading}>
+          {loading ? 'Salvando...' : 'Salvar Alterações'}
         </button>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}

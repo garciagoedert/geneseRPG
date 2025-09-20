@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, storage } from '../firebaseConfig'; // Import storage
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'; // Import storage functions
+import { db } from '../firebaseConfig';
 import { collection, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { convertGoogleDriveLink } from '../utils/imageUtils';
 import './Auth.css';
 
 const AddSpellPage: React.FC = () => {
@@ -14,15 +14,8 @@ const AddSpellPage: React.FC = () => {
   const [level, setLevel] = useState(0);
   const [description, setDescription] = useState('');
   const [visibleToPlayers, setVisibleToPlayers] = useState(false);
-  const [image, setImage] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [imageUrl, setImageUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
-    }
-  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -33,37 +26,9 @@ const AddSpellPage: React.FC = () => {
       return;
     }
 
-    let imageUrl = '';
-
-    if (image) {
-      const storageRef = ref(storage, `spellImages/${currentUser.uid}/${Date.now()}_${image.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, image);
-
-      try {
-        await new Promise<void>((resolve, reject) => {
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              setUploadProgress(progress);
-            },
-            (error) => {
-              console.error('Upload error:', error);
-              setError('Falha no upload da imagem.');
-              reject(error);
-            },
-            async () => {
-              imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve();
-            }
-          );
-        });
-      } catch (e) {
-        return; // Impede a criação se o upload falhar
-      }
-    }
-
     try {
+      const finalImageUrl = convertGoogleDriveLink(imageUrl);
+
       await addDoc(collection(db, 'spellsAndAbilities'), {
         name,
         type,
@@ -71,7 +36,7 @@ const AddSpellPage: React.FC = () => {
         description,
         visibleToPlayers,
         createdAt: new Date(),
-        imageUrl: imageUrl, // Salva a URL da imagem
+        imageUrl: finalImageUrl,
       });
       navigate('/spells');
     } catch (e) {
@@ -98,14 +63,14 @@ const AddSpellPage: React.FC = () => {
           />
         </div>
         <div>
-          <label htmlFor="image">Imagem</label>
+          <label htmlFor="image">URL da Imagem</label>
           <input
-            type="file"
+            type="text"
             id="image"
-            onChange={handleImageChange}
-            accept="image/*"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="https://exemplo.com/magia.png"
           />
-          {uploadProgress > 0 && <progress value={uploadProgress} max="100" />}
         </div>
         <div>
           <label htmlFor="type">Tipo</label>

@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
+import { convertGoogleDriveLink } from '../utils/imageUtils';
+import GMActionModal from '../components/GMActionModal';
 import './Mesa.css'; // Estilo centralizado
 
 interface Item {
@@ -21,6 +23,20 @@ const ItemsPage: React.FC = () => {
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+
+  const handleCardClick = (item: Item) => {
+    if (currentUser?.role === 'gm') {
+      setSelectedItem(item);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedItem(null);
+  };
 
   const fetchItems = async () => {
     try {
@@ -93,30 +109,49 @@ const ItemsPage: React.FC = () => {
       <div className="character-list">
         {filteredItems.length > 0 ? (
           filteredItems.map(item => (
-            <div key={item.id} className="character-card">
-              <Link to={`/item/${item.id}`} className="character-card-link">
-                {item.imageUrl && <img src={item.imageUrl} alt={item.name} className="card-image" />}
-                <div className="card-content">
+            <div
+              key={item.id}
+              className="character-card"
+              style={{
+                backgroundImage: item.imageUrl
+                  ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(item.imageUrl)})`
+                  : 'none'
+              }}
+              onClick={() => handleCardClick(item)}
+            >
+              <div className="character-card-info">
+                <Link to={`/item/${item.id}`} className="character-card-link">
                   <h3>{item.name}</h3>
                   <p>Tipo: {item.type} | Raridade: {item.rarity}</p>
                   <p>{item.description.substring(0, 100)}...</p>
-                </div>
-              </Link>
-              {currentUser?.role === 'gm' && (
-                <div className="gm-controls">
-                  <button onClick={() => toggleVisibility(item.id, item.visibleToPlayers)}>
-                    {item.visibleToPlayers ? 'Ocultar' : 'Revelar'}
-                  </button>
-                  <Link to={`/edit-item/${item.id}`} className="control-button">Editar</Link>
-                  <button onClick={() => deleteItem(item.id)} className="control-button delete">Deletar</button>
-                </div>
-              )}
+                </Link>
+              </div>
             </div>
           ))
         ) : (
           <p>Nenhum item encontrado.</p>
         )}
       </div>
+
+      {selectedItem && (
+        <GMActionModal isOpen={isModalOpen} onClose={handleCloseModal}>
+          <button onClick={() => {
+            toggleVisibility(selectedItem.id, selectedItem.visibleToPlayers);
+            handleCloseModal();
+          }}>
+            {selectedItem.visibleToPlayers ? 'Ocultar dos Jogadores' : 'Revelar aos Jogadores'}
+          </button>
+          <Link to={`/edit-item/${selectedItem.id}`} className="control-button">
+            Editar
+          </Link>
+          <button onClick={() => {
+            deleteItem(selectedItem.id);
+            handleCloseModal();
+          }} className="control-button delete">
+            Deletar
+          </button>
+        </GMActionModal>
+      )}
     </div>
   );
 };

@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
+import { convertGoogleDriveLink } from '../utils/imageUtils';
+import GMActionModal from '../components/GMActionModal';
 import './Mesa.css'; // Estilo centralizado
 
 interface Creature {
@@ -20,6 +22,20 @@ const BestiaryPage: React.FC = () => {
   const [filteredCreatures, setFilteredCreatures] = useState<Creature[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCreature, setSelectedCreature] = useState<Creature | null>(null);
+
+  const handleCardClick = (creature: Creature) => {
+    if (currentUser?.role === 'gm') {
+      setSelectedCreature(creature);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCreature(null);
+  };
 
   const fetchCreatures = async () => {
     try {
@@ -94,29 +110,48 @@ const BestiaryPage: React.FC = () => {
       <div className="character-list">
         {filteredCreatures.length > 0 ? (
           filteredCreatures.map(creature => (
-            <div key={creature.id} className="character-card">
-              <Link to={`/creature/${creature.id}`} className="character-card-link">
-                {creature.imageUrl && <img src={creature.imageUrl} alt={creature.name} className="card-image" />}
-                <div className="card-content">
+            <div
+              key={creature.id}
+              className="character-card"
+              style={{
+                backgroundImage: creature.imageUrl
+                  ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(creature.imageUrl)})`
+                  : 'none'
+              }}
+              onClick={() => handleCardClick(creature)}
+            >
+              <div className="character-card-info">
+                <Link to={`/creature/${creature.id}`} className="character-card-link">
                   <h3>{creature.name}</h3>
                   <p>{creature.description.substring(0, 100)}...</p>
-                </div>
-              </Link>
-              {currentUser?.role === 'gm' && (
-                <div className="gm-controls">
-                  <button onClick={() => toggleVisibility(creature.id, creature.visibleToPlayers)}>
-                    {creature.visibleToPlayers ? 'Ocultar' : 'Revelar'}
-                  </button>
-                  <Link to={`/edit-creature/${creature.id}`} className="control-button">Editar</Link>
-                  <button onClick={() => deleteCreature(creature.id)} className="control-button delete">Deletar</button>
-                </div>
-              )}
+                </Link>
+              </div>
             </div>
           ))
         ) : (
           <p>Nenhuma criatura encontrada.</p>
         )}
       </div>
+
+      {selectedCreature && (
+        <GMActionModal isOpen={isModalOpen} onClose={handleCloseModal}>
+          <button onClick={() => {
+            toggleVisibility(selectedCreature.id, selectedCreature.visibleToPlayers);
+            handleCloseModal();
+          }}>
+            {selectedCreature.visibleToPlayers ? 'Ocultar dos Jogadores' : 'Revelar aos Jogadores'}
+          </button>
+          <Link to={`/edit-creature/${selectedCreature.id}`} className="control-button">
+            Editar
+          </Link>
+          <button onClick={() => {
+            deleteCreature(selectedCreature.id);
+            handleCloseModal();
+          }} className="control-button delete">
+            Deletar
+          </button>
+        </GMActionModal>
+      )}
     </div>
   );
 };

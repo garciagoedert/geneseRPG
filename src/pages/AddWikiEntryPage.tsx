@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, storage } from '../firebaseConfig';
+import { db } from '../firebaseConfig';
 import { collection, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
+import { convertGoogleDriveLink } from '../utils/imageUtils';
 import './Auth.css'; // Reutilizando o CSS
 
 const AddWikiEntryPage: React.FC = () => {
@@ -11,16 +11,11 @@ const AddWikiEntryPage: React.FC = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [image, setImage] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState('');
   const [visibleToPlayers, setVisibleToPlayers] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
-    }
-  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -34,17 +29,12 @@ const AddWikiEntryPage: React.FC = () => {
     }
 
     try {
-      let imageUrl = '';
-      if (image) {
-        const storageRef = ref(storage, `wiki-images/${Date.now()}-${image.name}`);
-        const snapshot = await uploadBytes(storageRef, image);
-        imageUrl = await getDownloadURL(snapshot.ref);
-      }
+      const finalImageUrl = convertGoogleDriveLink(imageUrl);
 
       await addDoc(collection(db, 'wiki'), {
         title,
         content,
-        imageUrl,
+        imageUrl: finalImageUrl,
         visibleToPlayers,
         createdAt: new Date(),
       });
@@ -85,12 +75,13 @@ const AddWikiEntryPage: React.FC = () => {
           />
         </div>
         <div>
-          <label htmlFor="image">Imagem</label>
+          <label htmlFor="image">URL da Imagem (Opcional)</label>
           <input
-            type="file"
+            type="text"
             id="image"
-            onChange={handleImageChange}
-            accept="image/*"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="https://exemplo.com/imagem.png"
           />
         </div>
         <div className="checkbox-container">

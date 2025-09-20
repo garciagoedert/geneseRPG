@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, storage } from '../firebaseConfig'; // Import storage
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'; // Import storage functions
+import { db } from '../firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigate, useParams } from 'react-router-dom';
+import { convertGoogleDriveLink } from '../utils/imageUtils';
 import './Auth.css'; // Reutilizando o CSS
 
 const EditCreaturePage: React.FC = () => {
@@ -14,17 +14,9 @@ const EditCreaturePage: React.FC = () => {
   const [description, setDescription] = useState('');
   const [stats, setStats] = useState('');
   const [visibleToPlayers, setVisibleToPlayers] = useState(false);
-  const [image, setImage] = useState<File | null>(null);
-  const [currentImageUrl, setCurrentImageUrl] = useState<string>('');
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [imageUrl, setImageUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
-    }
-  };
 
   useEffect(() => {
     if (!id) return;
@@ -38,7 +30,7 @@ const EditCreaturePage: React.FC = () => {
           setDescription(data.description);
           setStats(data.stats);
           setVisibleToPlayers(data.visibleToPlayers);
-          setCurrentImageUrl(data.imageUrl || '');
+          setImageUrl(data.imageUrl || '');
         } else {
           setError('Criatura não encontrada.');
         }
@@ -60,44 +52,16 @@ const EditCreaturePage: React.FC = () => {
       return;
     }
 
-    let imageUrl = currentImageUrl;
-
-    if (image) {
-      const storageRef = ref(storage, `creatureImages/${currentUser.uid}/${Date.now()}_${image.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, image);
-
-      try {
-        await new Promise<void>((resolve, reject) => {
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              setUploadProgress(progress);
-            },
-            (error) => {
-              console.error('Upload error:', error);
-              setError('Falha no upload da imagem.');
-              reject(error);
-            },
-            async () => {
-              imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve();
-            }
-          );
-        });
-      } catch (e) {
-        return; // Impede a atualização se o upload falhar
-      }
-    }
-
     try {
+      const finalImageUrl = convertGoogleDriveLink(imageUrl);
+
       const docRef = doc(db, 'bestiary', id);
       await updateDoc(docRef, {
         name,
         description,
         stats,
         visibleToPlayers,
-        imageUrl: imageUrl,
+        imageUrl: finalImageUrl,
       });
       navigate('/bestiary');
     } catch (e) {
@@ -128,15 +92,15 @@ const EditCreaturePage: React.FC = () => {
           />
         </div>
         <div>
-          <label htmlFor="image">Imagem da Criatura</label>
-          {currentImageUrl && <img src={currentImageUrl} alt="Imagem atual" style={{ width: '100px', display: 'block', marginBottom: '10px' }} />}
+          <label htmlFor="image">URL da Imagem da Criatura</label>
+          {imageUrl && <img src={convertGoogleDriveLink(imageUrl)} alt="Imagem atual" style={{ width: '100px', display: 'block', marginBottom: '10px' }} />}
           <input
-            type="file"
+            type="text"
             id="image"
-            onChange={handleImageChange}
-            accept="image/*"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="https://exemplo.com/criatura.png"
           />
-          {uploadProgress > 0 && <progress value={uploadProgress} max="100" />}
         </div>
         <div>
           <label htmlFor="description">Descrição</label>

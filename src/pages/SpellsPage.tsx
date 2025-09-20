@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
+import { convertGoogleDriveLink } from '../utils/imageUtils';
+import GMActionModal from '../components/GMActionModal';
 import './Mesa.css'; // Estilo centralizado
 
 interface Spell {
@@ -21,6 +23,20 @@ const SpellsPage: React.FC = () => {
   const [filteredSpells, setFilteredSpells] = useState<Spell[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null);
+
+  const handleCardClick = (spell: Spell) => {
+    if (currentUser?.role === 'gm') {
+      setSelectedSpell(spell);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedSpell(null);
+  };
 
   const fetchSpells = async () => {
     try {
@@ -93,30 +109,49 @@ const SpellsPage: React.FC = () => {
       <div className="character-list">
         {filteredSpells.length > 0 ? (
           filteredSpells.map(spell => (
-            <div key={spell.id} className="character-card">
-              <Link to={`/spell/${spell.id}`} className="character-card-link">
-                {spell.imageUrl && <img src={spell.imageUrl} alt={spell.name} className="card-image" />}
-                <div className="card-content">
+            <div
+              key={spell.id}
+              className="character-card"
+              style={{
+                backgroundImage: spell.imageUrl
+                  ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(spell.imageUrl)})`
+                  : 'none'
+              }}
+              onClick={() => handleCardClick(spell)}
+            >
+              <div className="character-card-info">
+                <Link to={`/spell/${spell.id}`} className="character-card-link">
                   <h3>{spell.name} ({spell.type})</h3>
                   <p>Nível: {spell.level}</p>
                   <p>{spell.description.substring(0, 100)}...</p>
-                </div>
-              </Link>
-              {currentUser?.role === 'gm' && (
-                <div className="gm-controls">
-                  <button onClick={() => toggleVisibility(spell.id, spell.visibleToPlayers)}>
-                    {spell.visibleToPlayers ? 'Ocultar' : 'Revelar'}
-                  </button>
-                  <Link to={`/edit-spell/${spell.id}`} className="control-button">Editar</Link>
-                  <button onClick={() => deleteSpell(spell.id)} className="control-button delete">Deletar</button>
-                </div>
-              )}
+                </Link>
+              </div>
             </div>
           ))
         ) : (
           <p>Nenhuma magia ou habilidade encontrada.</p>
         )}
       </div>
+
+      {selectedSpell && (
+        <GMActionModal isOpen={isModalOpen} onClose={handleCloseModal}>
+          <button onClick={() => {
+            toggleVisibility(selectedSpell.id, selectedSpell.visibleToPlayers);
+            handleCloseModal();
+          }}>
+            {selectedSpell.visibleToPlayers ? 'Ocultar dos Jogadores' : 'Revelar aos Jogadores'}
+          </button>
+          <Link to={`/edit-spell/${selectedSpell.id}`} className="control-button">
+            Editar
+          </Link>
+          <button onClick={() => {
+            deleteSpell(selectedSpell.id);
+            handleCloseModal();
+          }} className="control-button delete">
+            Deletar
+          </button>
+        </GMActionModal>
+      )}
     </div>
   );
 };

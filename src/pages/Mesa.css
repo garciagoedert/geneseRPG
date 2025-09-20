@@ -52,23 +52,28 @@
 }
 
 .character-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
   list-style: none;
   padding: 0;
 }
 
 .character-list-item {
-  background-color: var(--secondary-color);
+  background-color: #2c2c2c;
+  border: 1px solid #444;
   padding: 1rem;
   border-radius: 4px;
   margin-bottom: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: background-color 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
 }
 
 .character-list-item:hover {
-    background-color: #4e4e4e;
+    background-color: #3a3a3a;
+    border-color: var(--primary-color);
 }
 
 .character-list-item h3 {
@@ -80,23 +85,35 @@
 .character-card-link, .character-card-link:hover {
   text-decoration: none;
   color: inherit;
-  padding: 1.5rem;
-  flex-grow: 1;
-  cursor: pointer;
 }
 
 .character-card {
-  background-color: var(--secondary-color);
+  background-color: #2c2c2c;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid #444;
   border-radius: 8px;
-  margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  justify-content: flex-end; /* Alinha o conteúdo na base */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  min-height: 400px; /* Altura de carta */
+  position: relative;
+  overflow: hidden;
+  padding: 0; /* Removido para o info-card preencher tudo */
+}
+
+.character-card-info {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.5));
+  padding: 1rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .character-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); /* Sombra dourada sutil */
+  border-color: var(--primary-color);
 }
 
 .character-card h3 {
@@ -111,21 +128,6 @@
   color: var(--text-color);
 }
 
-.delete-button {
-  background-color: #c0392b;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: 'Cinzel', serif;
-  margin-top: 1rem;
-  align-self: flex-end;
-}
-
-.delete-button:hover {
-  background-color: #e74c3c;
-}
 
 .search-bar {
   width: 100%;
@@ -146,6 +148,9 @@
   background-color: rgba(0, 0, 0, 0.1);
   border-top: 1px solid var(--secondary-color-dark);
 }
+
+/* Estilos específicos para os controles dentro de um card */
+/* As ações do GM foram movidas para um modal. */
 
 .gm-controls button,
 .gm-controls .control-button {

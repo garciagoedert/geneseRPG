@@ -3,12 +3,15 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, doc, deleteDoc, addDoc, query, getDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
+import { convertGoogleDriveLink } from '../utils/imageUtils';
+import GMActionModal from '../components/GMActionModal';
 
 interface CharacterSummary {
   id: string;
   name: string;
   class: string;
   level: number;
+  imageUrl?: string;
 }
 
 interface MapSummary {
@@ -22,6 +25,20 @@ const GMViewPage: React.FC = () => {
   const [maps, setMaps] = useState<MapSummary[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCharacter, setSelectedCharacter] = useState<CharacterSummary | null>(null);
+
+  const handleCardClick = (character: CharacterSummary) => {
+    if (currentUser?.role === 'gm') {
+      setSelectedCharacter(character);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCharacter(null);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,12 +59,16 @@ const GMViewPage: React.FC = () => {
 
         // Se for GM, busca o resto dos dados
         const charactersSnapshot = await getDocs(collection(db, 'characterSheets'));
-        const chars = charactersSnapshot.docs.map(doc => ({
-          id: doc.id,
-          name: doc.data().name,
-          class: doc.data().class,
-          level: doc.data().level,
-        }));
+        const chars = charactersSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            name: data.name,
+            class: data.class,
+            level: data.level,
+            imageUrl: data.imageUrl || '',
+          };
+        });
         setCharacters(chars);
 
         // Fetch maps
@@ -173,14 +194,22 @@ const GMViewPage: React.FC = () => {
         <div className="character-list">
           {filteredCharacters.length > 0 ? (
             filteredCharacters.map(char => (
-              <div key={char.id} className="character-card">
-                <Link to={`/character/${char.id}`} className="character-card-link">
-                  <h3>{char.name}</h3>
-                  <p>{char.class} - Nível {char.level}</p>
-                </Link>
-                <button onClick={() => handleDeleteCharacter(char.id)} className="delete-button">
-                  Apagar
-                </button>
+              <div
+                key={char.id}
+                className="character-card"
+                style={{
+                  backgroundImage: char.imageUrl
+                    ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(char.imageUrl)})`
+                    : 'none'
+                }}
+                onClick={() => handleCardClick(char)}
+              >
+                <div className="character-card-info">
+                  <Link to={`/character/${char.id}`} className="character-card-link">
+                    <h3>{char.name}</h3>
+                    <p>{char.class} - Nível {char.level}</p>
+                  </Link>
+                </div>
               </div>
             ))
           ) : (
@@ -210,6 +239,20 @@ const GMViewPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {selectedCharacter && (
+        <GMActionModal isOpen={isModalOpen} onClose={handleCloseModal}>
+          <Link to={`/character/${selectedCharacter.id}`} className="control-button">
+            Ver Ficha
+          </Link>
+          <button onClick={() => {
+            handleDeleteCharacter(selectedCharacter.id);
+            handleCloseModal();
+          }} className="control-button delete">
+            Apagar Ficha
+          </button>
+        </GMActionModal>
+      )}
     </div>
   );
 };

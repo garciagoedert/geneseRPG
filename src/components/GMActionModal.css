@@ -1,0 +1,86 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--secondary-color);
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  border: 1px solid var(--primary-color);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--secondary-color-dark);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Estilos para os botões dentro do modal */
+.modal-body .control-button,
+.modal-body button {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modal-body .control-button:hover,
+.modal-body button:hover {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+}
+
+.modal-body .control-button.delete,
+.modal-body button.delete {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.modal-body .control-button.delete:hover,
+.modal-body button.delete:hover {
+  background-color: #c0392b;
+  color: white;
+}

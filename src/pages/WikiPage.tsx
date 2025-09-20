@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
+import { convertGoogleDriveLink } from '../utils/imageUtils';
+import GMActionModal from '../components/GMActionModal';
 import './Mesa.css'; // Estilo centralizado
 
 interface WikiEntry {
@@ -10,6 +12,7 @@ interface WikiEntry {
   title: string;
   content: string;
   visibleToPlayers: boolean;
+  imageUrl?: string;
 }
 
 const WikiPage: React.FC = () => {
@@ -18,6 +21,20 @@ const WikiPage: React.FC = () => {
   const [filteredEntries, setFilteredEntries] = useState<WikiEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState<WikiEntry | null>(null);
+
+  const handleCardClick = (entry: WikiEntry) => {
+    if (currentUser?.role === 'gm') {
+      setSelectedEntry(entry);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedEntry(null);
+  };
 
   const fetchEntries = async () => {
     try {
@@ -92,28 +109,48 @@ const WikiPage: React.FC = () => {
       <div className="character-list">
         {filteredEntries.length > 0 ? (
           filteredEntries.map(entry => (
-            <div key={entry.id} className="character-card">
-              <Link to={`/wiki/${entry.id}`} className="character-card-link">
-                <div className="card-content">
+            <div
+              key={entry.id}
+              className="character-card"
+              style={{
+                backgroundImage: entry.imageUrl
+                  ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(entry.imageUrl)})`
+                  : 'none'
+              }}
+              onClick={() => handleCardClick(entry)}
+            >
+              <div className="character-card-info">
+                <Link to={`/wiki/${entry.id}`} className="character-card-link">
                   <h3>{entry.title}</h3>
                   <p>{entry.content.substring(0, 100)}...</p>
-                </div>
-              </Link>
-              {currentUser?.role === 'gm' && (
-                <div className="gm-controls">
-                  <button onClick={() => toggleVisibility(entry.id, entry.visibleToPlayers)}>
-                    {entry.visibleToPlayers ? 'Ocultar' : 'Revelar'}
-                  </button>
-                  <Link to={`/edit-wiki-entry/${entry.id}`} className="control-button">Editar</Link>
-                  <button onClick={() => deleteEntry(entry.id)} className="control-button delete">Deletar</button>
-                </div>
-              )}
+                </Link>
+              </div>
             </div>
           ))
         ) : (
           <p>Nenhum artigo encontrado.</p>
         )}
       </div>
+
+      {selectedEntry && (
+        <GMActionModal isOpen={isModalOpen} onClose={handleCloseModal}>
+          <button onClick={() => {
+            toggleVisibility(selectedEntry.id, selectedEntry.visibleToPlayers);
+            handleCloseModal();
+          }}>
+            {selectedEntry.visibleToPlayers ? 'Ocultar dos Jogadores' : 'Revelar aos Jogadores'}
+          </button>
+          <Link to={`/edit-wiki-entry/${selectedEntry.id}`} className="control-button">
+            Editar
+          </Link>
+          <button onClick={() => {
+            deleteEntry(selectedEntry.id);
+            handleCloseModal();
+          }} className="control-button delete">
+            Deletar
+          </button>
+        </GMActionModal>
+      )}
     </div>
   );
 };
