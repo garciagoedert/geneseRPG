@@ -1,5 +1,8 @@
 import React, { useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
+import {
+  FaTh, FaUserPlus, FaMap, FaBook, FaMagic, FaBox, FaFileAlt, FaChalkboardTeacher
+} from 'react-icons/fa';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
@@ -42,15 +45,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <h2>Menu</h2>
           </div>
           <nav className="sidebar-nav">
-            <NavLink to="/dashboard" onClick={toggleSidebar}>Mesa</NavLink>
-            <NavLink to="/create-character" onClick={toggleSidebar}>Criar Ficha</NavLink>
-            <NavLink to="/maps" onClick={toggleSidebar}>Mapa</NavLink>
-            <NavLink to="/bestiary" onClick={toggleSidebar}>Bestiário</NavLink>
-            <NavLink to="/spells" onClick={toggleSidebar}>Magias e Habilidades</NavLink>
-            <NavLink to="/items" onClick={toggleSidebar}>Itens</NavLink>
-            <NavLink to="/wiki" onClick={toggleSidebar}>Wiki</NavLink>
+            <NavLink to="/dashboard" onClick={toggleSidebar}><FaTh /> Mesa</NavLink>
+            <NavLink to="/create-character" onClick={toggleSidebar}><FaUserPlus /> Criar Ficha</NavLink>
+            <NavLink to="/maps" onClick={toggleSidebar}><FaMap /> Mapa</NavLink>
+            <NavLink to="/bestiary" onClick={toggleSidebar}><FaBook /> Bestiário</NavLink>
+            <NavLink to="/spells" onClick={toggleSidebar}><FaMagic /> Magias e Habilidades</NavLink>
+            <NavLink to="/items" onClick={toggleSidebar}><FaBox /> Itens</NavLink>
+            <NavLink to="/wiki" onClick={toggleSidebar}><FaFileAlt /> Wiki</NavLink>
             {currentUser?.role === 'gm' && (
-              <NavLink to="/gm-view" onClick={toggleSidebar}>Visão do Mestre</NavLink>
+              <NavLink to="/gm-view" onClick={toggleSidebar}><FaChalkboardTeacher /> Visão do Mestre</NavLink>
             )}
           </nav>
         </div>
