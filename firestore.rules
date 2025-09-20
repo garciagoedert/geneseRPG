@@ -31,11 +31,11 @@ service cloud.firestore {
       allow write: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'gm' || request.auth.uid == resource.data.ownerId);
     }
 
-    // GMs podem ler todos os mapas. Usuários podem manipular apenas os seus.
+    // GMs podem ler todos os mapas. Jogadores podem ler mapas visíveis. Usuários podem manipular apenas os seus.
     match /maps/{mapId} {
-      allow read: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'gm' || resource.data.ownerId == request.auth.uid);
+      allow read: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'gm' || resource.data.visibleToPlayers == true || resource.data.ownerId == request.auth.uid);
       allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+      allow update, delete: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'gm' || resource.data.ownerId == request.auth.uid);
     }
 
     // GMs podem escrever na Wiki. Jogadores só podem ler o que for visível.
