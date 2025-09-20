@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
-import { collection, getDocs, doc, deleteDoc, addDoc, query, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, deleteDoc, getDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import { convertGoogleDriveLink } from '../utils/imageUtils';
 import GMActionModal from '../components/GMActionModal';

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { collection, query, where, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import GMActionModal from '../components/GMActionModal';
 import { convertGoogleDriveLink } from '../utils/imageUtils';
 import './Mesa.css'; // Usar o CSS unificado
@@ -19,7 +19,6 @@ const MapsListPage: React.FC = () => {
   const { currentUser } = useAuth();
   const [maps, setMaps] = useState<MapData[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMap, setSelectedMap] = useState<MapData | null>(null);
 
