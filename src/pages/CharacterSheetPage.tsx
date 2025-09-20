@@ -118,12 +118,14 @@ const CharacterSheetPage: React.FC = () => {
 
       <main className="sheet-main">
         <div className="sheet-header">
-          {sheetData.imageUrl && (
-            <img src={sheetData.imageUrl} alt={sheetData.name} className="character-image" />
-          )}
-          <div>
-            <h1>{sheetData.name}</h1>
-            <p>Classe: {sheetData.class} | Nível: {sheetData.level}</p>
+          <div className="character-info">
+            {sheetData.imageUrl && (
+              <img src={sheetData.imageUrl} alt={sheetData.name} className="character-image" />
+            )}
+            <div>
+              <h1>{sheetData.name}</h1>
+              <p>Classe: {sheetData.class} | Nível: {sheetData.level}</p>
+            </div>
           </div>
           {(currentUser?.uid === sheetData.ownerId || currentUser?.role === 'gm') && (
             <Link to={`/edit-character/${sheetId}`} className="edit-button">
