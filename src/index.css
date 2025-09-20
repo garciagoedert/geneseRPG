@@ -35,19 +35,26 @@ a:hover {
 }
 
 /* Custom Scrollbar */
-::-webkit-scrollbar {
+/* For Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #888 transparent;
+}
+
+/* For Chrome, Safari and Opera */
+body::-webkit-scrollbar {
   width: 8px;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--secondary-color);
+body::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--primary-color);
+body::-webkit-scrollbar-thumb {
+  background-color: #888;
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #b89a30; /* Um dourado um pouco mais escuro */
+body::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
