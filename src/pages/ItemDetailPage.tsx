@@ -9,6 +9,7 @@ interface ItemData {
   type: string;
   rarity: string;
   description: string;
+  imageUrl?: string;
 }
 
 const ItemDetailPage: React.FC = () => {
@@ -50,8 +51,11 @@ const ItemDetailPage: React.FC = () => {
     <div className="sheet-container">
       <main className="sheet-main">
         <div className="sheet-header">
-          <h1>{itemData.name}</h1>
-          <p>Tipo: {itemData.type} | Raridade: {itemData.rarity}</p>
+          {itemData.imageUrl && <img src={itemData.imageUrl} alt={itemData.name} className="character-image" />}
+          <div>
+            <h1>{itemData.name}</h1>
+            <p>Tipo: {itemData.type} | Raridade: {itemData.rarity}</p>
+          </div>
         </div>
         <div className="sheet-section">
           <h2>Descrição</h2>

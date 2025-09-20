@@ -13,6 +13,7 @@ interface Item {
   type: string;
   rarity: string;
   visibleToPlayers: boolean;
+  imageUrl?: string;
 }
 
 const ItemsPage: React.FC = () => {
@@ -94,6 +95,7 @@ const ItemsPage: React.FC = () => {
         {filteredItems.length > 0 ? (
           filteredItems.map(item => (
             <div key={item.id} className="character-card">
+              {item.imageUrl && <img src={item.imageUrl} alt={item.name} className="card-image" />}
               <div className="card-content">
                 <h3>{item.name}</h3>
                 <p>Tipo: {item.type} | Raridade: {item.rarity}</p>

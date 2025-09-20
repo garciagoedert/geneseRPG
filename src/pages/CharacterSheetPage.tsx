@@ -22,6 +22,7 @@ interface CharacterSheetData {
   abilities: string[];
   spells: string[];
   ownerId: string;
+  imageUrl?: string; // Adiciona o campo opcional para a imagem
 }
 
 interface DetailItem {
@@ -108,6 +109,9 @@ const CharacterSheetPage: React.FC = () => {
 
       <main className="sheet-main">
         <div className="sheet-header">
+          {sheetData.imageUrl && (
+            <img src={sheetData.imageUrl} alt={sheetData.name} className="character-image" />
+          )}
           <div>
             <h1>{sheetData.name}</h1>
             <p>Classe: {sheetData.class} | Nível: {sheetData.level}</p>

@@ -12,6 +12,7 @@ interface Creature {
   description: string;
   stats: string;
   visibleToPlayers: boolean;
+  imageUrl?: string;
 }
 
 const BestiaryPage: React.FC = () => {
@@ -95,6 +96,7 @@ const BestiaryPage: React.FC = () => {
         {filteredCreatures.length > 0 ? (
           filteredCreatures.map(creature => (
             <div key={creature.id} className="character-card">
+              {creature.imageUrl && <img src={creature.imageUrl} alt={creature.name} className="card-image" />}
               <div className="card-content">
                 <h3>{creature.name}</h3>
                 <p>{creature.description.substring(0, 100)}...</p>

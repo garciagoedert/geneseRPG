@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db } from '../firebaseConfig';
+import { db, storage } from '../firebaseConfig'; // Import storage
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'; // Import storage functions
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigate, useParams } from 'react-router-dom';
 import SpellSelector from '../components/SpellSelector';
@@ -25,8 +26,17 @@ const EditCharacterPage: React.FC = () => {
   const [inventory, setInventory] = useState<string[]>([]);
   const [abilities, setAbilities] = useState<string[]>([]);
   const [spells, setSpells] = useState<string[]>([]);
+  const [image, setImage] = useState<File | null>(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string>('');
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImage(e.target.files[0]);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -47,6 +57,7 @@ const EditCharacterPage: React.FC = () => {
           setInventory(data.inventory);
           setAbilities(data.abilities);
           setSpells(data.spells);
+          setCurrentImageUrl(data.imageUrl || '');
         } else {
           setError('Ficha não encontrada.');
         }
@@ -77,6 +88,36 @@ const EditCharacterPage: React.FC = () => {
       return;
     }
 
+    let imageUrl = currentImageUrl;
+
+    if (image) {
+      const storageRef = ref(storage, `characterImages/${currentUser.uid}/${Date.now()}_${image.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, image);
+
+      try {
+        await new Promise<void>((resolve, reject) => {
+          uploadTask.on(
+            'state_changed',
+            (snapshot) => {
+              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              setUploadProgress(progress);
+            },
+            (error) => {
+              console.error('Upload error:', error);
+              setError('Falha no upload da imagem.');
+              reject(error);
+            },
+            async () => {
+              imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
+              resolve();
+            }
+          );
+        });
+      } catch (e) {
+        return; // Impede a atualização se o upload falhar
+      }
+    }
+
     try {
       const docRef = doc(db, 'characterSheets', id);
       await updateDoc(docRef, {
@@ -87,6 +128,7 @@ const EditCharacterPage: React.FC = () => {
         inventory,
         abilities,
         spells,
+        imageUrl: imageUrl,
       });
       navigate(`/character/${id}`);
     } catch (e) {
@@ -121,6 +163,17 @@ const EditCharacterPage: React.FC = () => {
             onChange={(e) => setCharacterClass(e.target.value)}
             required
           />
+        </div>
+        <div>
+          <label htmlFor="image">Imagem do Personagem</label>
+          {currentImageUrl && <img src={currentImageUrl} alt="Imagem atual" style={{ width: '100px', display: 'block', marginBottom: '10px' }} />}
+          <input
+            type="file"
+            id="image"
+            onChange={handleImageChange}
+            accept="image/*"
+          />
+          {uploadProgress > 0 && <progress value={uploadProgress} max="100" />}
         </div>
         <div>
           <label htmlFor="level">Nível</label>

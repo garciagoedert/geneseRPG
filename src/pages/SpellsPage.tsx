@@ -13,6 +13,7 @@ interface Spell {
   level: number;
   description: string;
   visibleToPlayers: boolean;
+  imageUrl?: string;
 }
 
 const SpellsPage: React.FC = () => {
@@ -94,6 +95,7 @@ const SpellsPage: React.FC = () => {
         {filteredSpells.length > 0 ? (
           filteredSpells.map(spell => (
             <div key={spell.id} className="character-card">
+              {spell.imageUrl && <img src={spell.imageUrl} alt={spell.name} className="card-image" />}
               <div className="card-content">
                 <h3>{spell.name} ({spell.type})</h3>
                 <p>Nível: {spell.level}</p>

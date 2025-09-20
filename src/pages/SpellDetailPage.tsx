@@ -9,6 +9,7 @@ interface SpellData {
   type: 'magia' | 'habilidade';
   level: number;
   description: string;
+  imageUrl?: string;
 }
 
 const SpellDetailPage: React.FC = () => {
@@ -50,8 +51,11 @@ const SpellDetailPage: React.FC = () => {
     <div className="sheet-container">
       <main className="sheet-main">
         <div className="sheet-header">
-          <h1>{spellData.name}</h1>
-          <p>Tipo: {spellData.type} | Nível: {spellData.level}</p>
+          {spellData.imageUrl && <img src={spellData.imageUrl} alt={spellData.name} className="character-image" />}
+          <div>
+            <h1>{spellData.name}</h1>
+            <p>Tipo: {spellData.type} | Nível: {spellData.level}</p>
+          </div>
         </div>
         <div className="sheet-section">
           <h2>Descrição</h2>
