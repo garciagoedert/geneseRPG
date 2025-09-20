@@ -4,6 +4,7 @@ import RegisterPage from './pages/RegisterPage';
 import MesaPage from './pages/MesaPage';
 import CreateCharacterPage from './pages/CreateCharacterPage';
 import MapPage from './pages/MapPage';
+import MapsListPage from './pages/MapsListPage';
 import CharacterSheetPage from './pages/CharacterSheetPage';
 import EditCharacterPage from './pages/EditCharacterPage';
 import GMViewPage from './pages/GMViewPage';
@@ -57,7 +58,17 @@ function App() {
           }
         />
         <Route
-          path="/map"
+          path="/maps"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <MapsListPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/map/:mapId"
           element={
             <ProtectedRoute>
               <Layout>

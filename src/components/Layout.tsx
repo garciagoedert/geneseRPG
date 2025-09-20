@@ -1,4 +1,4 @@
-import React, { type ReactNode } from 'react';
+import React, { useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
@@ -11,6 +11,11 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { currentUser } = useAuth();
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!isSidebarOpen);
+  };
 
   const handleLogout = async () => {
     try {
@@ -22,26 +27,38 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="layout-container">
-      <aside className="sidebar">
+      <header className="app-header">
+        <button className="sidebar-toggle" onClick={toggleSidebar}>
+          ☰
+        </button>
+        <NavLink to="/dashboard" className="header-title-link">
+          <h1>Gênese RPG</h1>
+        </NavLink>
+      </header>
+      
+      <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div>
           <div className="sidebar-header">
-            <h2>Gênese RPG</h2>
+            <h2>Menu</h2>
           </div>
           <nav className="sidebar-nav">
-            <NavLink to="/dashboard">Mesa</NavLink>
-            <NavLink to="/create-character">Criar Ficha</NavLink>
-            <NavLink to="/map">Mapa</NavLink>
-            <NavLink to="/bestiary">Bestiário</NavLink>
-            <NavLink to="/spells">Magias e Habilidades</NavLink>
-            <NavLink to="/items">Itens</NavLink>
-            <NavLink to="/wiki">Wiki</NavLink>
+            <NavLink to="/dashboard" onClick={toggleSidebar}>Mesa</NavLink>
+            <NavLink to="/create-character" onClick={toggleSidebar}>Criar Ficha</NavLink>
+            <NavLink to="/map" onClick={toggleSidebar}>Mapa</NavLink>
+            <NavLink to="/bestiary" onClick={toggleSidebar}>Bestiário</NavLink>
+            <NavLink to="/spells" onClick={toggleSidebar}>Magias e Habilidades</NavLink>
+            <NavLink to="/items" onClick={toggleSidebar}>Itens</NavLink>
+            <NavLink to="/wiki" onClick={toggleSidebar}>Wiki</NavLink>
             {currentUser?.role === 'gm' && (
-              <NavLink to="/gm-view">Visão do Mestre</NavLink>
+              <NavLink to="/gm-view" onClick={toggleSidebar}>Visão do Mestre</NavLink>
             )}
           </nav>
         </div>
         <button onClick={handleLogout} className="logout-button">Logout</button>
       </aside>
+      
+      {isSidebarOpen && <div className="overlay" onClick={toggleSidebar}></div>}
+
       <main className="main-content">
         {children}
       </main>

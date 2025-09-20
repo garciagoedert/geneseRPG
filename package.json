@@ -13,9 +13,12 @@
     "firebase": "^12.2.1",
     "firebase-admin": "^13.5.0",
     "firebase-functions": "^6.4.0",
+    "konva": "^10.0.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router-dom": "^7.9.1"
+    "react-konva": "^19.0.10",
+    "react-router-dom": "^7.9.1",
+    "use-image": "^1.1.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

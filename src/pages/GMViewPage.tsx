@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
-import { collection, getDocs, doc, deleteDoc, addDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, deleteDoc, addDoc, query } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 
 interface CharacterSummary {
@@ -11,37 +11,55 @@ interface CharacterSummary {
   level: number;
 }
 
+interface MapSummary {
+  id: string;
+  name: string;
+}
+
 const GMViewPage: React.FC = () => {
   const { currentUser } = useAuth();
   const [characters, setCharacters] = useState<CharacterSummary[]>([]);
+  const [maps, setMaps] = useState<MapSummary[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCharacters = async () => {
+    const fetchData = async () => {
       if (currentUser?.role !== 'gm') {
         setLoading(false);
         return;
       }
       try {
-        const querySnapshot = await getDocs(collection(db, 'characterSheets'));
-        const chars = querySnapshot.docs.map(doc => ({
+        // Fetch characters
+        const charactersSnapshot = await getDocs(collection(db, 'characterSheets'));
+        const chars = charactersSnapshot.docs.map(doc => ({
           id: doc.id,
           name: doc.data().name,
           class: doc.data().class,
           level: doc.data().level,
         }));
         setCharacters(chars);
+
+        // Fetch maps
+        const mapsQuery = query(collection(db, "maps")); // Removido o filtro where
+        const mapsSnapshot = await getDocs(mapsQuery);
+        const mapsList = mapsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          name: (doc.data() as { name: string }).name,
+        }));
+        setMaps(mapsList);
+
       } catch (error) {
-        console.error("Erro ao buscar fichas:", error);
+        console.error("Erro ao buscar dados:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCharacters();
+    fetchData();
   }, [currentUser]);
 
-  const handleDelete = async (characterId: string) => {
+  const handleDeleteCharacter = async (characterId: string) => {
     if (window.confirm('Tem certeza que deseja apagar esta ficha? Esta ação não pode ser desfeita.')) {
       try {
         await deleteDoc(doc(db, 'characterSheets', characterId));
@@ -51,6 +69,14 @@ const GMViewPage: React.FC = () => {
       }
     }
   };
+
+  const filteredCharacters = characters.filter(char =>
+    char.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredMaps = maps.filter(map =>
+    map.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const populateDatabase = async () => {
     if (!window.confirm('Isso irá adicionar mais dados de exemplo ao banco de dados. Deseja continuar?')) {
@@ -123,23 +149,56 @@ const GMViewPage: React.FC = () => {
         <h1>Visão do Mestre</h1>
         <button onClick={populateDatabase} className="gm-button">Popular com Exemplos</button>
       </div>
-      <h2>Fichas de Personagens</h2>
-      <div className="character-list">
-        {characters.length > 0 ? (
-          characters.map(char => (
-            <div key={char.id} className="character-card">
-              <Link to={`/character/${char.id}`} className="character-card-link">
-                <h3>{char.name}</h3>
-                <p>{char.class} - Nível {char.level}</p>
-              </Link>
-              <button onClick={() => handleDelete(char.id)} className="delete-button">
-                Apagar
-              </button>
-            </div>
-          ))
-        ) : (
-          <p>Nenhuma ficha de personagem encontrada.</p>
-        )}
+
+      <input
+        type="text"
+        placeholder="Buscar por fichas ou mapas..."
+        className="search-bar"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+
+      <div className="gm-section">
+        <h2>Fichas de Personagens</h2>
+        <div className="character-list">
+          {filteredCharacters.length > 0 ? (
+            filteredCharacters.map(char => (
+              <div key={char.id} className="character-card">
+                <Link to={`/character/${char.id}`} className="character-card-link">
+                  <h3>{char.name}</h3>
+                  <p>{char.class} - Nível {char.level}</p>
+                </Link>
+                <button onClick={() => handleDeleteCharacter(char.id)} className="delete-button">
+                  Apagar
+                </button>
+              </div>
+            ))
+          ) : (
+            <p>Nenhuma ficha de personagem encontrada.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="gm-section">
+        <div className="section-header">
+          <h2>Mapas</h2>
+          <Link to="/maps">
+            <button className="gm-button">Gerenciar Mapas</button>
+          </Link>
+        </div>
+        <div className="character-list">
+          {filteredMaps.length > 0 ? (
+            filteredMaps.map(map => (
+              <div key={map.id} className="character-card">
+                <Link to={`/map/${map.id}`} className="character-card-link">
+                  <h3>{map.name}</h3>
+                </Link>
+              </div>
+            ))
+          ) : (
+            <p>Nenhum mapa encontrado.</p>
+          )}
+        </div>
       </div>
     </div>
   );

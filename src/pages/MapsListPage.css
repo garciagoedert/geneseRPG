@@ -1,0 +1,81 @@
+.maps-list-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: auto;
+  color: var(--text-color);
+}
+
+.maps-list-container h2 {
+    border-bottom: 1px solid var(--primary-color);
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+    font-family: 'Cinzel', serif;
+}
+
+.create-map-btn {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-bottom: 20px;
+  transition: background-color 0.3s;
+  font-family: 'Cinzel', serif;
+}
+
+.create-map-btn:hover {
+  background-color: #c8a46e;
+}
+
+.maps-list {
+  list-style: none;
+  padding: 0;
+}
+
+.map-list-item {
+  background-color: var(--secondary-color);
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.map-list-item:hover {
+    background-color: #4e4e4e;
+}
+
+.map-list-item span {
+  font-size: 18px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.map-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.map-btn {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 14px;
+  font-family: 'Cinzel', serif;
+  transition: opacity 0.2s;
+}
+
+.map-btn.delete {
+  background-color: #c0392b;
+}
+
+.map-btn:hover {
+  opacity: 0.9;
+}

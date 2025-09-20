@@ -25,6 +25,10 @@ const CreateCharacterPage: React.FC = () => {
   const [inventory, setInventory] = useState<string[]>([]);
   const [abilities, setAbilities] = useState<string[]>([]); // Agora um array de IDs
   const [spells, setSpells] = useState<string[]>([]); // Agora um array de IDs
+  const [history, setHistory] = useState('');
+  const [appearance, setAppearance] = useState('');
+  const [personality, setPersonality] = useState('');
+  const [notes, setNotes] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +95,10 @@ const CreateCharacterPage: React.FC = () => {
         ownerId: currentUser.uid,
         createdAt: new Date(),
         imageUrl: imageUrl, // Salva a URL da imagem
+        history,
+        appearance,
+        personality,
+        notes,
       });
       console.log('Ficha criada com sucesso');
       navigate('/dashboard');
@@ -182,6 +190,38 @@ const CreateCharacterPage: React.FC = () => {
           selectedIds={inventory}
           onChange={setInventory}
         />
+        <div>
+          <label htmlFor="history">História</label>
+          <textarea
+            id="history"
+            value={history}
+            onChange={(e) => setHistory(e.target.value)}
+          />
+        </div>
+        <div>
+          <label htmlFor="appearance">Aparência</label>
+          <textarea
+            id="appearance"
+            value={appearance}
+            onChange={(e) => setAppearance(e.target.value)}
+          />
+        </div>
+        <div>
+          <label htmlFor="personality">Personalidade</label>
+          <textarea
+            id="personality"
+            value={personality}
+            onChange={(e) => setPersonality(e.target.value)}
+          />
+        </div>
+        <div>
+          <label htmlFor="notes">Anotações</label>
+          <textarea
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </div>
         <button type="submit">Salvar Ficha</button>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}

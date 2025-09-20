@@ -23,6 +23,10 @@ interface CharacterSheetData {
   spells: string[];
   ownerId: string;
   imageUrl?: string; // Adiciona o campo opcional para a imagem
+  history?: string;
+  appearance?: string;
+  personality?: string;
+  notes?: string;
 }
 
 interface DetailItem {
@@ -165,6 +169,34 @@ const CharacterSheetPage: React.FC = () => {
               </li>
             ))}
           </ul>
+        </div>
+
+        <div className="sheet-section">
+          <h2>Detalhes do Personagem</h2>
+          {sheetData.history && (
+            <>
+              <h3>História</h3>
+              <p>{sheetData.history}</p>
+            </>
+          )}
+          {sheetData.appearance && (
+            <>
+              <h3>Aparência</h3>
+              <p>{sheetData.appearance}</p>
+            </>
+          )}
+          {sheetData.personality && (
+            <>
+              <h3>Personalidade</h3>
+              <p>{sheetData.personality}</p>
+            </>
+          )}
+          {sheetData.notes && (
+            <>
+              <h3>Anotações</h3>
+              <p>{sheetData.notes}</p>
+            </>
+          )}
         </div>
       </main>
     </div>

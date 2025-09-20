@@ -12,6 +12,11 @@ interface CharacterSheet {
   class: string;
 }
 
+interface MapData {
+  id: string;
+  name: string;
+}
+
 interface UserData {
   email: string;
   role: 'jogador' | 'gm';
@@ -22,6 +27,7 @@ const MesaPage: React.FC = () => {
   const { currentUser } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [characterSheets, setCharacterSheets] = useState<CharacterSheet[]>([]);
+  const [maps, setMaps] = useState<MapData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,6 +54,15 @@ const MesaPage: React.FC = () => {
           sheets.push({ id: doc.id, ...doc.data() } as CharacterSheet);
         });
         setCharacterSheets(sheets);
+
+        // Buscar mapas
+        const mapsQuery = query(collection(db, "maps"), where("ownerId", "==", currentUser.uid));
+        const mapsSnapshot = await getDocs(mapsQuery);
+        const mapsList: MapData[] = [];
+        mapsSnapshot.forEach((doc) => {
+          mapsList.push({ id: doc.id, ...doc.data() } as MapData);
+        });
+        setMaps(mapsList);
 
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
@@ -86,6 +101,23 @@ const MesaPage: React.FC = () => {
       ) : (
         <p>Não foi possível carregar os dados do usuário.</p>
       )}
+
+      <div className="mesa-section">
+        <h2>Mapas da Campanha</h2>
+        {maps.length > 0 ? (
+          <ul className="character-list">
+            {maps.map(map => (
+              <Link to={`/map/${map.id}`} key={map.id} style={{ textDecoration: 'none' }}>
+                <li className="character-list-item map-card">
+                  <h3>{map.name}</h3>
+                </li>
+              </Link>
+            ))}
+          </ul>
+        ) : (
+          <p>Nenhum mapa encontrado para esta campanha.</p>
+        )}
+      </div>
 
       <DiceRoller />
     </div>

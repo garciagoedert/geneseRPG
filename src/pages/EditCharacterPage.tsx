@@ -26,6 +26,10 @@ const EditCharacterPage: React.FC = () => {
   const [inventory, setInventory] = useState<string[]>([]);
   const [abilities, setAbilities] = useState<string[]>([]);
   const [spells, setSpells] = useState<string[]>([]);
+  const [history, setHistory] = useState('');
+  const [appearance, setAppearance] = useState('');
+  const [personality, setPersonality] = useState('');
+  const [notes, setNotes] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [currentImageUrl, setCurrentImageUrl] = useState<string>('');
   const [isProcessingImage, setIsProcessingImage] = useState(false);
@@ -57,6 +61,10 @@ const EditCharacterPage: React.FC = () => {
           setInventory(data.inventory);
           setAbilities(data.abilities);
           setSpells(data.spells);
+          setHistory(data.history || '');
+          setAppearance(data.appearance || '');
+          setPersonality(data.personality || '');
+          setNotes(data.notes || '');
           setCurrentImageUrl(data.imageUrl || '');
         } else {
           setError('Ficha não encontrada.');
@@ -117,6 +125,10 @@ const EditCharacterPage: React.FC = () => {
         abilities,
         spells,
         imageUrl: imageUrl,
+        history,
+        appearance,
+        personality,
+        notes,
       });
       navigate(`/character/${id}`);
     } catch (e) {
@@ -214,6 +226,38 @@ const EditCharacterPage: React.FC = () => {
           selectedIds={inventory}
           onChange={setInventory}
         />
+        <div>
+          <label htmlFor="history">História</label>
+          <textarea
+            id="history"
+            value={history}
+            onChange={(e) => setHistory(e.target.value)}
+          />
+        </div>
+        <div>
+          <label htmlFor="appearance">Aparência</label>
+          <textarea
+            id="appearance"
+            value={appearance}
+            onChange={(e) => setAppearance(e.target.value)}
+          />
+        </div>
+        <div>
+          <label htmlFor="personality">Personalidade</label>
+          <textarea
+            id="personality"
+            value={personality}
+            onChange={(e) => setPersonality(e.target.value)}
+          />
+        </div>
+        <div>
+          <label htmlFor="notes">Anotações</label>
+          <textarea
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </div>
         <button type="submit" disabled={isProcessingImage}>
           {isProcessingImage ? 'Salvando...' : 'Salvar Alterações'}
         </button>
