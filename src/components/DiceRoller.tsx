@@ -159,7 +159,7 @@ const DiceRoller: React.FC = () => {
             <li key={roll.key}>
               <strong>{roll.userName}</strong> rolou {roll.totalResult} ({roll.formula})
               <span className="roll-details">
-                {`[${roll.individualResults.join(', ')}]`}
+                {`[${Array.isArray(roll.individualResults) ? roll.individualResults.join(', ') : ''}]`}
                 {roll.modifier !== 0 && (roll.modifier > 0 ? ` + ${roll.modifier}` : ` - ${Math.abs(roll.modifier)}`)}
               </span>
             </li>

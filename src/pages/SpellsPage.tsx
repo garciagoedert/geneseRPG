@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
-import './BestiaryPage.css'; // Reutilizando estilos
+import './SpellsPage.css';
 
 interface Spell {
   id: string;

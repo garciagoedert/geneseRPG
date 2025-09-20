@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, storage } from '../firebaseConfig'; // Import storage
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'; // Import storage functions
+import { db, storage } from '../firebaseConfig';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigate, useParams } from 'react-router-dom';
 import SpellSelector from '../components/SpellSelector';
@@ -28,7 +28,7 @@ const EditCharacterPage: React.FC = () => {
   const [spells, setSpells] = useState<string[]>([]);
   const [image, setImage] = useState<File | null>(null);
   const [currentImageUrl, setCurrentImageUrl] = useState<string>('');
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -78,43 +78,31 @@ const EditCharacterPage: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
+    setIsProcessingImage(true);
 
     if (!currentUser) {
       setError('Você precisa estar logado para editar um personagem.');
+      setIsProcessingImage(false);
       return;
     }
     if (!id) {
       setError('ID da ficha não encontrado.');
+      setIsProcessingImage(false);
       return;
     }
 
     let imageUrl = currentImageUrl;
 
     if (image) {
-      const storageRef = ref(storage, `characterImages/${currentUser.uid}/${Date.now()}_${image.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, image);
-
       try {
-        await new Promise<void>((resolve, reject) => {
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              setUploadProgress(progress);
-            },
-            (error) => {
-              console.error('Upload error:', error);
-              setError('Falha no upload da imagem.');
-              reject(error);
-            },
-            async () => {
-              imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve();
-            }
-          );
-        });
+        const imageRef = ref(storage, `character-images/${id}/${image.name}`);
+        await uploadBytes(imageRef, image);
+        imageUrl = await getDownloadURL(imageRef);
       } catch (e) {
-        return; // Impede a atualização se o upload falhar
+        console.error('Erro no upload da imagem:', e);
+        setError('Falha ao fazer upload da imagem.');
+        setIsProcessingImage(false);
+        return;
       }
     }
 
@@ -133,6 +121,8 @@ const EditCharacterPage: React.FC = () => {
       navigate(`/character/${id}`);
     } catch (e) {
       setError('Não foi possível atualizar a ficha.');
+    } finally {
+      setIsProcessingImage(false);
     }
   };
 
@@ -181,8 +171,9 @@ const EditCharacterPage: React.FC = () => {
             id="image"
             onChange={handleImageChange}
             accept="image/*"
+            disabled={isProcessingImage}
           />
-          {uploadProgress > 0 && <progress value={uploadProgress} max="100" />}
+          {isProcessingImage && <p>Processando imagem...</p>}
         </div>
         <div>
           <label htmlFor="level">Nível</label>
@@ -223,7 +214,9 @@ const EditCharacterPage: React.FC = () => {
           selectedIds={inventory}
           onChange={setInventory}
         />
-        <button type="submit">Salvar Alterações</button>
+        <button type="submit" disabled={isProcessingImage}>
+          {isProcessingImage ? 'Salvando...' : 'Salvar Alterações'}
+        </button>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
