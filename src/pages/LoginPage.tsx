@@ -25,8 +25,9 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="auth-container">
-      <h1>Login</h1>
+    <div className="auth-page">
+      <div className="auth-container">
+        <h1>Login</h1>
       <form onSubmit={handleSubmit} className="auth-form">
         <div>
           <label htmlFor="email">Email</label>
@@ -54,6 +55,7 @@ const LoginPage: React.FC = () => {
       <p>
         Não tem uma conta? <Link to="/register">Cadastre-se</Link>
       </p>
+    </div>
     </div>
   );
 };

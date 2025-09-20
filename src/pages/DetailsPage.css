@@ -1,0 +1,211 @@
+.details-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0; /* Removido para o hero esticar */
+  background-color: var(--secondary-color);
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+/* --- Cabeçalho Hero --- */
+.details-hero {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  background-color: #111; /* Fallback */
+}
+
+.details-hero-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.details-hero-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 20%, transparent);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.details-hero-content h1 {
+  font-family: 'Cinzel', serif;
+  color: white;
+  font-size: 3rem;
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.details-edit-button {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  cursor: pointer;
+  font-size: 1rem;
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* --- Cards de Conteúdo --- */
+.details-card {
+  padding: 1.5rem 2rem;
+  margin: 1.5rem 0;
+}
+
+.details-card-title {
+  font-family: 'Cinzel', serif;
+  color: var(--primary-color);
+  border-bottom: 1px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.details-pre {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  color: var(--text-color);
+  font-family: 'Roboto', sans-serif;
+}
+
+
+/* --- Estilos Genéricos (mantidos de antes) --- */
+.details-image {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.details-container > h1 { /* Seletor mais específico para o H1 do MapDetails */
+  font-family: 'Cinzel', serif;
+  color: var(--primary-color);
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.details-section {
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.details-section h2 { /* Mantido para MapDetails */
+  font-family: 'Cinzel', serif;
+  color: var(--primary-color);
+  border-bottom: 1px solid var(--secondary-color-dark);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.details-description { /* Mantido para MapDetails */
+  white-space: pre-wrap;
+  line-height: 1.6;
+  color: var(--text-color);
+}
+
+.details-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 1rem;
+  background-color: var(--background-color);
+  border: 1px solid var(--secondary-color-dark);
+  color: var(--text-color);
+  border-radius: 4px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.details-input {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  background-color: var(--background-color);
+  border: 1px solid var(--secondary-color-dark);
+  color: var(--text-color);
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.title-input {
+  font-family: 'Cinzel', serif;
+  font-size: 2.5rem;
+  text-align: center;
+  border: none;
+  border-bottom: 2px solid var(--primary-color);
+  background: transparent;
+  color: var(--primary-color);
+  margin-bottom: 2rem;
+}
+
+.title-input:focus {
+  outline: none;
+}
+
+.details-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.details-actions button {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.details-actions button:hover {
+  background-color: #ffdb58;
+}
+
+/* --- Responsividade --- */
+@media (max-width: 768px) {
+  .details-hero {
+    height: 300px;
+  }
+
+  .details-hero-content {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .details-hero-content h1 {
+    font-size: 2.2rem;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+}
+
+.details-actions .cancel-button {
+  background-color: var(--secondary-color-dark);
+  color: var(--text-color);
+}
+
+.details-actions .cancel-button:hover {
+  background-color: #555;
+}

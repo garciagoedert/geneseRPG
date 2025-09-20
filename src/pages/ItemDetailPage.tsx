@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
-import './CharacterSheetPage.css'; // Reutilizando estilos
+import { convertGoogleDriveLink } from '../utils/imageUtils';
+import './DetailsPage.css'; // Usando o novo estilo padrão
 
 interface ItemData {
   name: string;
@@ -50,25 +51,32 @@ const ItemDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="sheet-container">
-      <main className="sheet-main">
-        <div className="sheet-header">
-          {itemData.imageUrl && <img src={itemData.imageUrl} alt={itemData.name} className="character-image" />}
+    <div className="details-container">
+      <header className="details-hero">
+        {itemData.imageUrl && (
+          <img 
+            src={convertGoogleDriveLink(itemData.imageUrl)} 
+            alt={itemData.name} 
+            className="details-hero-image" 
+          />
+        )}
+        <div className="details-hero-content">
           <div>
             <h1>{itemData.name}</h1>
-            <p>Tipo: {itemData.type} | Raridade: {itemData.rarity}</p>
+            <p style={{ margin: 0, color: '#ccc' }}>Tipo: {itemData.type} | Raridade: {itemData.rarity}</p>
           </div>
           {currentUser?.role === 'gm' && (
-            <Link to={`/edit-item/${id}`} className="edit-button">
+            <Link to={`/edit-item/${id}`} className="details-edit-button">
               Editar
             </Link>
           )}
         </div>
-        <div className="sheet-section">
-          <h2>Descrição</h2>
-          <pre className="sheet-pre">{itemData.description}</pre>
-        </div>
-      </main>
+      </header>
+
+      <div className="details-card">
+        <h2 className="details-card-title">Descrição</h2>
+        <pre className="details-pre">{itemData.description}</pre>
+      </div>
     </div>
   );
 };

@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
-import './CharacterSheetPage.css'; // Reutilizando estilos
+import { convertGoogleDriveLink } from '../utils/imageUtils';
+import './DetailsPage.css'; // Usando o novo estilo padrão
 
 interface CreatureData {
   name: string;
@@ -49,28 +50,34 @@ const CreatureDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="sheet-container">
-      <main className="sheet-main">
-        <div className="sheet-header">
-          {creatureData.imageUrl && <img src={creatureData.imageUrl} alt={creatureData.name} className="character-image" />}
-          <div>
-            <h1>{creatureData.name}</h1>
-          </div>
+    <div className="details-container">
+      <header className="details-hero">
+        {creatureData.imageUrl && (
+          <img 
+            src={convertGoogleDriveLink(creatureData.imageUrl)} 
+            alt={creatureData.name} 
+            className="details-hero-image" 
+          />
+        )}
+        <div className="details-hero-content">
+          <h1>{creatureData.name}</h1>
           {currentUser?.role === 'gm' && (
-            <Link to={`/edit-creature/${id}`} className="edit-button">
+            <Link to={`/edit-creature/${id}`} className="details-edit-button">
               Editar
             </Link>
           )}
         </div>
-        <div className="sheet-section">
-          <h2>Descrição</h2>
-          <pre className="sheet-pre">{creatureData.description}</pre>
-        </div>
-        <div className="sheet-section">
-          <h2>Estatísticas</h2>
-          <pre className="sheet-pre">{creatureData.stats}</pre>
-        </div>
-      </main>
+      </header>
+
+      <div className="details-card">
+        <h2 className="details-card-title">Descrição</h2>
+        <pre className="details-pre">{creatureData.description}</pre>
+      </div>
+
+      <div className="details-card">
+        <h2 className="details-card-title">Estatísticas</h2>
+        <pre className="details-pre">{creatureData.stats}</pre>
+      </div>
     </div>
   );
 };

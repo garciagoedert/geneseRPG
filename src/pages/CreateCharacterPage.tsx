@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, storage } from '../firebaseConfig'; // Import storage
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage'; // Import storage functions
+import { db } from '../firebaseConfig';
 import { collection, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { convertGoogleDriveLink } from '../utils/imageUtils'; // Importar a função
 import SpellSelector from '../components/SpellSelector';
 import ItemSelector from '../components/ItemSelector';
 import './Auth.css'; // Reutilizando o CSS da autenticação
-
 const CreateCharacterPage: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [characterClass, setCharacterClass] = useState('');
   const [level, setLevel] = useState(1);
+  const [hp, setHp] = useState(10);
+  const [mp, setMp] = useState(10);
+  const [gold, setGold] = useState(0);
   const [attributes, setAttributes] = useState({
     strength: { score: 10, bonus: 0 },
     dexterity: { score: 10, bonus: 0 },
@@ -29,15 +31,8 @@ const CreateCharacterPage: React.FC = () => {
   const [appearance, setAppearance] = useState('');
   const [personality, setPersonality] = useState('');
   const [notes, setNotes] = useState('');
-  const [image, setImage] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [imageUrl, setImageUrl] = useState(''); // Estado para a URL da imagem
   const [error, setError] = useState<string | null>(null);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
-    }
-  };
 
   const handleAttributeChange = (e: React.ChangeEvent<HTMLInputElement>, attr: string, field: 'score' | 'bonus') => {
     const { value } = e.target;
@@ -59,48 +54,23 @@ const CreateCharacterPage: React.FC = () => {
       return;
     }
 
-    let imageUrl = '';
-
-    if (image) {
-      const storageRef = ref(storage, `characterImages/${currentUser.uid}/${Date.now()}_${image.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, image);
-
-      try {
-        await new Promise<void>((resolve, reject) => {
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              setUploadProgress(progress);
-            },
-            (error) => {
-              console.error('Upload error:', error);
-              setError('Falha no upload da imagem.');
-              reject(error);
-            },
-            async () => {
-              imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve();
-            }
-          );
-        });
-      } catch (e) {
-        return; // Impede a criação da ficha se o upload falhar
-      }
-    }
-
     try {
+      const finalImageUrl = convertGoogleDriveLink(imageUrl); // Converte o link, se necessário
+
       await addDoc(collection(db, 'characterSheets'), {
         name,
         class: characterClass,
         level,
+        hp,
+        mp,
+        gold,
         attributes,
         inventory: inventory,
         abilities: abilities,
         spells: spells,
         ownerId: currentUser.uid,
         createdAt: new Date(),
-        imageUrl: imageUrl, // Salva a URL da imagem
+        imageUrl: finalImageUrl, // Salva a URL da imagem
         history,
         appearance,
         personality,
@@ -148,14 +118,14 @@ const CreateCharacterPage: React.FC = () => {
           />
         </div>
         <div>
-          <label htmlFor="image">Imagem do Personagem</label>
+          <label htmlFor="image">URL da Imagem do Personagem</label>
           <input
-            type="file"
+            type="text"
             id="image"
-            onChange={handleImageChange}
-            accept="image/*"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="https://exemplo.com/personagem.png"
           />
-          {uploadProgress > 0 && <progress value={uploadProgress} max="100" />}
         </div>
         <div>
           <label htmlFor="level">Nível</label>
@@ -164,6 +134,36 @@ const CreateCharacterPage: React.FC = () => {
             id="level"
             value={level}
             onChange={(e) => setLevel(parseInt(e.target.value, 10) || 1)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="hp">HP</label>
+          <input
+            type="number"
+            id="hp"
+            value={hp}
+            onChange={(e) => setHp(parseInt(e.target.value, 10) || 0)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="mp">MP</label>
+          <input
+            type="number"
+            id="mp"
+            value={mp}
+            onChange={(e) => setMp(parseInt(e.target.value, 10) || 0)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="gold">Ouro</label>
+          <input
+            type="number"
+            id="gold"
+            value={gold}
+            onChange={(e) => setGold(parseInt(e.target.value, 10) || 0)}
             required
           />
         </div>

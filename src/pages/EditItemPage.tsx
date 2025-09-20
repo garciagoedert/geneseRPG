@@ -54,6 +54,11 @@ const EditItemPage: React.FC = () => {
       return;
     }
 
+    if (currentUser.role !== 'gm') {
+      setError('Você não tem permissão para editar itens.');
+      return;
+    }
+
     try {
       const finalImageUrl = convertGoogleDriveLink(imageUrl);
 

@@ -5,6 +5,7 @@ import MesaPage from './pages/MesaPage';
 import CreateCharacterPage from './pages/CreateCharacterPage';
 import MapPage from './pages/MapPage';
 import MapsListPage from './pages/MapsListPage';
+import MapDetailsPage from './pages/MapDetailsPage';
 import CharacterSheetPage from './pages/CharacterSheetPage';
 import EditCharacterPage from './pages/EditCharacterPage';
 import GMViewPage from './pages/GMViewPage';
@@ -75,6 +76,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <MapPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/map-details/:mapId"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <MapDetailsPage />
               </Layout>
             </ProtectedRoute>
           }

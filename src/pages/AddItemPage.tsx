@@ -37,6 +37,7 @@ const AddItemPage: React.FC = () => {
         visibleToPlayers,
         createdAt: new Date(),
         imageUrl: finalImageUrl,
+        ownerId: currentUser.uid,
       });
       navigate('/items');
     } catch (e) {

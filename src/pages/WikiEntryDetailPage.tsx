@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
-import './CharacterSheetPage.css'; // Reutilizando estilos
+import { convertGoogleDriveLink } from '../utils/imageUtils';
+import './DetailsPage.css'; // Usando o novo estilo padrão
 
 interface WikiEntryData {
   title: string;
@@ -48,28 +49,29 @@ const WikiEntryDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="sheet-container">
-      <main className="sheet-main">
-        <div className="sheet-header">
-          <div>
-            <h1>{entryData.title}</h1>
-          </div>
+    <div className="details-container">
+      <header className="details-hero">
+        {entryData.imageUrl && (
+          <img 
+            src={convertGoogleDriveLink(entryData.imageUrl)} 
+            alt={entryData.title} 
+            className="details-hero-image" 
+          />
+        )}
+        <div className="details-hero-content">
+          <h1>{entryData.title}</h1>
           {currentUser?.role === 'gm' && (
-            <Link to={`/edit-wiki-entry/${id}`} className="edit-button">
+            <Link to={`/edit-wiki-entry/${id}`} className="details-edit-button">
               Editar
             </Link>
           )}
         </div>
-        {entryData.imageUrl && (
-          <div className="sheet-section">
-            <img src={entryData.imageUrl} alt={entryData.title} style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }} />
-          </div>
-        )}
-        <div className="sheet-section">
-          <h2>Conteúdo</h2>
-          <pre className="sheet-pre">{entryData.content}</pre>
-        </div>
-      </main>
+      </header>
+
+      <div className="details-card">
+        <h2 className="details-card-title">Conteúdo</h2>
+        <pre className="details-pre">{entryData.content}</pre>
+      </div>
     </div>
   );
 };

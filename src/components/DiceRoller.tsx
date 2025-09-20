@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ref, onValue, push, serverTimestamp, query, limitToLast, remove } from 'firebase/database';
 import { realtimeDB } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
+import { evaluateMathExpression } from '../utils/mathParser';
 import './DiceRoller.css';
 
 // Por enquanto, usaremos um ID de sala fixo para testes.
@@ -10,11 +11,11 @@ const SALA_DE_TESTE_ID = 'sala_teste_01';
 interface Roll {
   key: string;
   formula: string;
-  individualResults: number[];
-  modifier: number;
+  individualResults: Record<string, number[]>;
   totalResult: number;
   userName: string;
   timestamp: number;
+  resolvedFormula: string;
 }
 
 const DiceRoller: React.FC = () => {
@@ -51,29 +52,6 @@ const DiceRoller: React.FC = () => {
     historyEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [rollHistory]);
 
-  const parseDiceFormula = (formula: string): { count: number; sides: number; modifier: number } => {
-    formula = formula.toLowerCase().replace(/\s/g, ''); // Remove espaços e converte para minúsculas
-    let count = 1;
-    let sides = 20;
-    let modifier = 0;
-
-    // Extrai o modificador
-    const modifierMatch = formula.match(/[+-]\d+$/);
-    if (modifierMatch) {
-      modifier = parseInt(modifierMatch[0], 10);
-      formula = formula.slice(0, modifierMatch.index);
-    }
-
-    // Extrai a contagem e os lados (ex: "2d8")
-    const diceMatch = formula.match(/(\d+)?d(\d+)/);
-    if (diceMatch) {
-      count = diceMatch[1] ? parseInt(diceMatch[1], 10) : 1;
-      sides = parseInt(diceMatch[2], 10);
-    }
-
-    return { count, sides, modifier };
-  };
-
   const handleRoll = () => {
     if (!currentUser) {
       alert('Você precisa estar logado para rolar os dados.');
@@ -84,31 +62,54 @@ const DiceRoller: React.FC = () => {
       return;
     }
 
-    const { count, sides, modifier } = parseDiceFormula(diceFormula);
+    try {
+      const originalFormula = diceFormula.toLowerCase();
+      const individualResults: Record<string, number[]> = {};
+      const diceRegex = /(\d+)?d(\d+)/g;
 
-    if (count <= 0 || sides <= 0) {
-      alert('Fórmula de dados inválida.');
-      return;
+      const resolvedFormula = originalFormula.replace(diceRegex, (match, countStr, sidesStr) => {
+        const count = countStr ? parseInt(countStr, 10) : 1;
+        const sides = parseInt(sidesStr, 10);
+
+        if (count <= 0 || sides <= 0) {
+          throw new Error(`Dado inválido na fórmula: ${match}`);
+        }
+
+        const rolls: number[] = [];
+        for (let i = 0; i < count; i++) {
+          rolls.push(Math.floor(Math.random() * sides) + 1);
+        }
+
+        if (!individualResults[match]) {
+          individualResults[match] = [];
+        }
+        individualResults[match].push(...rolls);
+
+        const sumOfRolls = rolls.reduce((sum, current) => sum + current, 0);
+        return sumOfRolls.toString();
+      });
+
+      const totalResult = evaluateMathExpression(resolvedFormula);
+
+      const historyRef = ref(realtimeDB, `rolls_history/${SALA_DE_TESTE_ID}`);
+      push(historyRef, {
+        formula: diceFormula,
+        individualResults,
+        totalResult,
+        userName: currentUser.displayName || currentUser.email,
+        timestamp: serverTimestamp(),
+        resolvedFormula: resolvedFormula.replace(/\s/g, ''),
+      });
+
+      setDiceFormula('');
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(`Erro na fórmula: ${error.message}`);
+      } else {
+        alert('Ocorreu um erro desconhecido ao rolar os dados.');
+      }
+      console.error(error);
     }
-
-    const individualResults: number[] = [];
-    for (let i = 0; i < count; i++) {
-      individualResults.push(Math.floor(Math.random() * sides) + 1);
-    }
-
-    const sumOfRolls = individualResults.reduce((sum, current) => sum + current, 0);
-    const totalResult = sumOfRolls + modifier;
-
-    const historyRef = ref(realtimeDB, `rolls_history/${SALA_DE_TESTE_ID}`);
-    push(historyRef, {
-      formula: diceFormula,
-      individualResults,
-      modifier,
-      totalResult,
-      userName: currentUser.displayName || currentUser.email,
-      timestamp: serverTimestamp(),
-    });
-    setDiceFormula(''); // Limpa o input após a rolagem
   };
 
   const clearHistory = () => {
@@ -157,10 +158,16 @@ const DiceRoller: React.FC = () => {
         <ul>
           {rollHistory.map((roll) => (
             <li key={roll.key}>
-              <strong>{roll.userName}</strong> rolou {roll.totalResult} ({roll.formula})
+              <div className="roll-main-info">
+                <span className="roll-info">{roll.userName} rolou ({roll.formula})</span>
+                <strong>{roll.totalResult}</strong>
+              </div>
               <span className="roll-details">
-                {`[${Array.isArray(roll.individualResults) ? roll.individualResults.join(', ') : ''}]`}
-                {roll.modifier !== 0 && (roll.modifier > 0 ? ` + ${roll.modifier}` : ` - ${Math.abs(roll.modifier)}`)}
+                Detalhes: {roll.resolvedFormula}
+                {' ➔ '}
+                {Object.entries(roll.individualResults)
+                  .map(([dice, results]) => `${dice}: [${results.join(', ')}]`)
+                  .join('; ')}
               </span>
             </li>
           ))}

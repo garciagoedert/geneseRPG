@@ -4,17 +4,20 @@ import { db } from '../firebaseConfig';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import DiceRoller from '../components/DiceRoller';
+import { convertGoogleDriveLink } from '../utils/imageUtils';
 import './Mesa.css';
 
 interface CharacterSheet {
   id: string;
   name: string;
   class: string;
+  imageUrl?: string;
 }
 
 interface MapData {
   id: string;
   name: string;
+  imageUrl?: string;
 }
 
 interface UserData {
@@ -84,16 +87,26 @@ const MesaPage: React.FC = () => {
         <div>
           <h2>Minhas Fichas</h2>
           {characterSheets.length > 0 ? (
-            <ul className="character-list">
+            <div className="character-list">
               {characterSheets.map(sheet => (
-                <Link to={`/character/${sheet.id}`} key={sheet.id} style={{ textDecoration: 'none' }}>
-                  <li className="character-list-item">
-                    <h3>{sheet.name}</h3>
-                    <span>{sheet.class}</span>
-                  </li>
-                </Link>
+                <div
+                  key={sheet.id}
+                  className="character-card"
+                  style={{
+                    backgroundImage: sheet.imageUrl
+                      ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(sheet.imageUrl)})`
+                      : 'none'
+                  }}
+                >
+                  <div className="character-card-info">
+                    <Link to={`/character/${sheet.id}`} className="character-card-link">
+                      <h3>{sheet.name}</h3>
+                      <p>{sheet.class}</p>
+                    </Link>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           ) : (
             <p>Você ainda não criou nenhuma ficha.</p>
           )}
@@ -105,15 +118,25 @@ const MesaPage: React.FC = () => {
       <div className="mesa-section">
         <h2>Mapas da Campanha</h2>
         {maps.length > 0 ? (
-          <ul className="character-list">
+          <div className="character-list">
             {maps.map(map => (
-              <Link to={`/map/${map.id}`} key={map.id} style={{ textDecoration: 'none' }}>
-                <li className="character-list-item map-card">
-                  <h3>{map.name}</h3>
-                </li>
-              </Link>
+              <div
+                key={map.id}
+                className="character-card"
+                style={{
+                  backgroundImage: map.imageUrl
+                    ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(map.imageUrl)})`
+                    : 'none'
+                }}
+              >
+                <div className="character-card-info">
+                  <Link to={`/map-details/${map.id}`} className="character-card-link">
+                    <h3>{map.name}</h3>
+                  </Link>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
           <p>Nenhum mapa encontrado para esta campanha.</p>
         )}

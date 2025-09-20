@@ -15,6 +15,9 @@ const EditCharacterPage: React.FC = () => {
   const [name, setName] = useState('');
   const [characterClass, setCharacterClass] = useState('');
   const [level, setLevel] = useState(1);
+  const [hp, setHp] = useState(10);
+  const [mp, setMp] = useState(10);
+  const [gold, setGold] = useState(0);
   const [attributes, setAttributes] = useState({
     strength: { score: 10, bonus: 0 },
     dexterity: { score: 10, bonus: 0 },
@@ -50,6 +53,9 @@ const EditCharacterPage: React.FC = () => {
           setName(data.name);
           setCharacterClass(data.class);
           setLevel(data.level);
+          setHp(data.hp || 10);
+          setMp(data.mp || 10);
+          setGold(data.gold || 0);
 
           // Lógica para retrocompatibilidade de atributos
           const newAttributes = { ...attributes };
@@ -115,6 +121,9 @@ const EditCharacterPage: React.FC = () => {
         name,
         class: characterClass,
         level,
+        hp,
+        mp,
+        gold,
         attributes,
         inventory,
         abilities,
@@ -189,6 +198,36 @@ const EditCharacterPage: React.FC = () => {
             id="level"
             value={level}
             onChange={(e) => setLevel(parseInt(e.target.value, 10) || 1)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="hp">HP</label>
+          <input
+            type="number"
+            id="hp"
+            value={hp}
+            onChange={(e) => setHp(parseInt(e.target.value, 10) || 0)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="mp">MP</label>
+          <input
+            type="number"
+            id="mp"
+            value={mp}
+            onChange={(e) => setMp(parseInt(e.target.value, 10) || 0)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="gold">Ouro</label>
+          <input
+            type="number"
+            id="gold"
+            value={gold}
+            onChange={(e) => setGold(parseInt(e.target.value, 10) || 0)}
             required
           />
         </div>

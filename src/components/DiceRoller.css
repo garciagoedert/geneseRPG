@@ -1,6 +1,8 @@
 .dice-roller-container {
-  background-color: var(--secondary-color);
-  padding: 1.5rem;
+  background: #1e1e1e; /* Fundo mais escuro */
+  border: 1px solid var(--primary-color);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); /* Brilho sutil */
+  padding: 2rem;
   border-radius: 8px;
   margin-top: 2rem;
   text-align: center;
@@ -10,52 +12,100 @@
   margin-top: 0;
   font-family: 'Cinzel', serif;
   color: var(--primary-color);
+  font-size: 1.8rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* --- Área de Input --- */
+.dice-input-area {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.dice-input-area input {
+  padding: 0.75rem;
+  border: 1px solid #555;
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+  background-color: #111;
+  color: var(--text-color);
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.1rem;
+  flex-grow: 1;
+  max-width: 250px;
+  transition: border-color 0.3s;
+}
+
+.dice-input-area input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.dice-input-area button {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  border: 1px solid var(--primary-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0 4px 4px 0;
+  font-family: 'Cinzel', serif;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: bold;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.dice-input-area button:hover {
+  background-color: #ffdb58; /* Amarelo mais claro */
+}
+
+/* --- Botões de Dados --- */
+.dice-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
 }
 
 .dice-buttons button {
-  background-color: var(--background-color);
+  background-color: transparent;
   color: var(--primary-color);
   border: 1px solid var(--primary-color);
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-family: 'Roboto', sans-serif;
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  font-family: 'Cinzel', serif;
   cursor: pointer;
-  font-size: 1rem;
-  margin: 0.25rem;
-  transition: background-color 0.3s, color 0.3s;
+  font-size: 1.2rem;
+  transition: background-color 0.3s, color 0.3s, transform 0.2s;
 }
 
 .dice-buttons button:hover {
   background-color: var(--primary-color);
   color: var(--background-color);
+  transform: translateY(-3px);
 }
 
-.last-roll {
-  margin-top: 1.5rem;
-  font-size: 1.2rem;
-}
-
-.last-roll strong {
-  color: var(--primary-color);
-  font-size: 1.5rem;
-}
-
+/* --- Histórico --- */
 .roll-history {
   margin-top: 1.5rem;
   text-align: left;
-  max-height: 200px;
+  max-height: 250px;
   overflow-y: auto;
-  padding: 0.5rem;
-  border: 1px solid var(--primary-color);
+  padding: 1rem;
   border-radius: 4px;
-  background-color: var(--background-color);
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
 .roll-history h4 {
   margin-top: 0;
+  margin-bottom: 1rem;
   font-family: 'Cinzel', serif;
   color: var(--primary-color);
   text-align: center;
+  font-size: 1.2rem;
 }
 
 .roll-history ul {
@@ -65,18 +115,42 @@
 }
 
 .roll-history li {
-  padding: 0.5rem;
-  border-bottom: 1px solid #444;
+  padding: 0.75rem;
+  border-bottom: 1px solid #333;
 }
 
 .roll-history li:last-child {
   border-bottom: none;
 }
 
+.roll-main-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.roll-main-info strong {
+  color: var(--primary-color);
+  font-size: 1.5rem; /* Destaque para o resultado total */
+}
+
+.roll-info {
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.roll-details {
+  font-size: 0.85rem;
+  color: #888;
+  display: block;
+  margin-top: 0.25rem;
+}
+
 .clear-history-button {
-  background-color: #a83232; /* Um tom de vermelho escuro */
-  color: #fff;
-  border: 1px solid #872828;
+  background-color: transparent;
+  color: #c94e4e;
+  border: 1px solid #c94e4e;
   padding: 0.5rem 1rem;
   border-radius: 4px;
   font-family: 'Roboto', sans-serif;
@@ -86,51 +160,10 @@
   display: block;
   margin-left: auto;
   margin-right: auto;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .clear-history-button:hover {
-  background-color: #c94e4e; /* Vermelho mais claro no hover */
-}
-
-.dice-input-area {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-
-.dice-input-area input {
-  padding: 0.5rem;
-  border: 1px solid var(--primary-color);
-  border-radius: 4px 0 0 4px;
-  background-color: var(--background-color);
-  color: var(--text-color);
-  font-family: 'Roboto', sans-serif;
-  font-size: 1rem;
-  flex-grow: 1;
-  max-width: 200px;
-}
-
-.dice-input-area button {
-  background-color: var(--primary-color);
-  color: var(--background-color);
-  border: 1px solid var(--primary-color);
-  padding: 0.5rem 1rem;
-  border-radius: 0 4px 4px 0;
-  font-family: 'Roboto', sans-serif;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.3s, color 0.3s;
-  border-left: none;
-}
-
-.dice-input-area button:hover {
-  background-color: var(--background-color);
-  color: var(--primary-color);
-}
-
-.roll-details {
-  font-size: 0.85rem;
-  color: #aaa;
-  margin-left: 0.5rem;
+  background-color: #c94e4e;
+  color: white;
 }

@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
+import { convertGoogleDriveLink } from '../utils/imageUtils';
+import './DetailsPage.css';
 import './CharacterSheetPage.css';
 
 // Definindo uma interface para a estrutura da ficha
@@ -15,6 +17,9 @@ interface CharacterSheetData {
   name: string;
   class: string;
   level: number;
+  hp: number;
+  mp: number;
+  gold: number;
   attributes: {
     strength: Attribute | number;
     dexterity: Attribute | number;
@@ -37,6 +42,7 @@ interface CharacterSheetData {
 interface DetailItem {
   id: string;
   name: string;
+  imageUrl?: string;
 }
 
 const CharacterSheetPage: React.FC = () => {
@@ -59,26 +65,22 @@ const CharacterSheetPage: React.FC = () => {
           const data = docSnap.data() as CharacterSheetData;
           setSheetData(data);
 
-          // Buscar detalhes das habilidades
-          if (data.abilities && data.abilities.length > 0) {
-            const abilitiesQuery = query(collection(db, 'spellsAndAbilities'), where('__name__', 'in', data.abilities));
-            const abilitiesSnapshot = await getDocs(abilitiesQuery);
-            setAbilitiesDetails(abilitiesSnapshot.docs.map(d => ({ id: d.id, name: d.data().name })));
-          }
+          // Função auxiliar para buscar detalhes
+          const fetchDetails = async (collectionName: string, ids: string[]) => {
+            if (!ids || ids.length === 0) return [];
+            const detailsQuery = query(collection(db, collectionName), where('__name__', 'in', ids));
+            const snapshot = await getDocs(detailsQuery);
+            return snapshot.docs.map(d => ({
+              id: d.id,
+              name: d.data().name,
+              imageUrl: d.data().imageUrl,
+            }));
+          };
 
-          // Buscar detalhes das magias
-          if (data.spells && data.spells.length > 0) {
-            const spellsQuery = query(collection(db, 'spellsAndAbilities'), where('__name__', 'in', data.spells));
-            const spellsSnapshot = await getDocs(spellsQuery);
-            setSpellsDetails(spellsSnapshot.docs.map(d => ({ id: d.id, name: d.data().name })));
-          }
-
-          // Buscar detalhes do inventário
-          if (data.inventory && data.inventory.length > 0) {
-            const itemsQuery = query(collection(db, 'items'), where('__name__', 'in', data.inventory));
-            const itemsSnapshot = await getDocs(itemsQuery);
-            setInventoryDetails(itemsSnapshot.docs.map(d => ({ id: d.id, name: d.data().name })));
-          }
+          // Buscar detalhes
+          setAbilitiesDetails(await fetchDetails('spellsAndAbilities', data.abilities));
+          setSpellsDetails(await fetchDetails('spellsAndAbilities', data.spells));
+          setInventoryDetails(await fetchDetails('items', data.inventory));
         } else {
           console.error("No such document!");
         }
@@ -126,10 +128,31 @@ const CharacterSheetPage: React.FC = () => {
   };
 
   return (
-    <div className="sheet-container">
-      <aside className="sheet-sidebar">
-        <div className="sheet-section">
-          <h2>Atributos</h2>
+    <div className="details-container">
+      <header className="details-hero">
+        {sheetData.imageUrl && (
+          <img 
+            src={convertGoogleDriveLink(sheetData.imageUrl)} 
+            alt={sheetData.name} 
+            className="details-hero-image" 
+          />
+        )}
+        <div className="details-hero-content">
+          <div>
+            <h1>{sheetData.name}</h1>
+            <p style={{ margin: 0, color: '#ccc' }}>{sheetData.class} - Nível {sheetData.level}</p>
+          </div>
+          {(currentUser?.uid === sheetData.ownerId || currentUser?.role === 'gm') && (
+            <Link to={`/edit-character/${sheetId}`} className="details-edit-button">
+              Editar Ficha
+            </Link>
+          )}
+        </div>
+      </header>
+
+      <div className="sheet-content-grid">
+        <div className="details-card">
+          <h2 className="details-card-title">Atributos</h2>
           <ul className="attributes-list">
             {Object.entries(sheetData.attributes).map(([key, value]) => {
               const { score, bonusDisplay } = getAttributeDisplay(value);
@@ -145,61 +168,45 @@ const CharacterSheetPage: React.FC = () => {
             })}
           </ul>
         </div>
-      </aside>
 
-      <main className="sheet-main">
-        <div className="sheet-header">
-          <div className="character-info">
-            {sheetData.imageUrl && (
-              <img src={sheetData.imageUrl} alt={sheetData.name} className="character-image" />
-            )}
-            <div>
-              <h1>{sheetData.name}</h1>
-              <p>Classe: {sheetData.class} | Nível: {sheetData.level}</p>
+        <div className="details-card">
+          <h2 className="details-card-title">Recursos</h2>
+          <div className="resources-grid">
+            <div 
+              className="resource-item" 
+              style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/rnwnDxF.png)` }}
+            >
+              <div className="resource-content">
+                <span className="resource-icon">❤️</span>
+                <span className="resource-value">{sheetData.hp}</span>
+                <span className="resource-label">HP</span>
+              </div>
+            </div>
+            <div 
+              className="resource-item" 
+              style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/wAJ7AOg.png)` }}
+            >
+              <div className="resource-content">
+                <span className="resource-icon">💧</span>
+                <span className="resource-value">{sheetData.mp}</span>
+                <span className="resource-label">MP</span>
+              </div>
+            </div>
+            <div 
+              className="resource-item" 
+              style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/KwnQdw7.png)` }}
+            >
+              <div className="resource-content">
+                <span className="resource-icon">💰</span>
+                <span className="resource-value">{sheetData.gold}</span>
+                <span className="resource-label">Ouro</span>
+              </div>
             </div>
           </div>
-          {(currentUser?.uid === sheetData.ownerId || currentUser?.role === 'gm') && (
-            <Link to={`/edit-character/${sheetId}`} className="edit-button">
-              Editar Ficha
-            </Link>
-          )}
         </div>
 
-        <div className="sheet-section">
-          <h2>Habilidades e Talentos</h2>
-          <ul className="link-list">
-            {abilitiesDetails.map(ability => (
-              <li key={ability.id}>
-                <Link to={`/spell/${ability.id}`}>{ability.name}</Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="sheet-section">
-          <h2>Magias</h2>
-          <ul className="link-list">
-            {spellsDetails.map(spell => (
-              <li key={spell.id}>
-                <Link to={`/spell/${spell.id}`}>{spell.name}</Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="sheet-section">
-          <h2>Inventário</h2>
-          <ul className="link-list">
-            {inventoryDetails.map(item => (
-              <li key={item.id}>
-                <Link to={`/item/${item.id}`}>{item.name}</Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="sheet-section">
-          <h2>Detalhes do Personagem</h2>
+        <div className="details-card sheet-details-full-width">
+          <h2 className="details-card-title">Detalhes do Personagem</h2>
           {sheetData.history && (
             <>
               <h3>História</h3>
@@ -225,7 +232,46 @@ const CharacterSheetPage: React.FC = () => {
             </>
           )}
         </div>
-      </main>
+
+        <div className="details-card">
+          <h2 className="details-card-title">Habilidades e Talentos</h2>
+          <div className="character-list">
+            {abilitiesDetails.map(ability => (
+              <div key={ability.id} className="character-card" style={{ backgroundImage: ability.imageUrl ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(ability.imageUrl)})` : 'none' }}>
+                <div className="character-card-info">
+                  <Link to={`/spell/${ability.id}`} className="character-card-link"><h3>{ability.name}</h3></Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="details-card">
+          <h2 className="details-card-title">Magias</h2>
+          <div className="character-list">
+            {spellsDetails.map(spell => (
+              <div key={spell.id} className="character-card" style={{ backgroundImage: spell.imageUrl ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(spell.imageUrl)})` : 'none' }}>
+                <div className="character-card-info">
+                  <Link to={`/spell/${spell.id}`} className="character-card-link"><h3>{spell.name}</h3></Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="details-card">
+          <h2 className="details-card-title">Inventário</h2>
+          <div className="character-list">
+            {inventoryDetails.map(item => (
+              <div key={item.id} className="character-card" style={{ backgroundImage: item.imageUrl ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(item.imageUrl)})` : 'none' }}>
+                <div className="character-card-info">
+                  <Link to={`/item/${item.id}`} className="character-card-link"><h3>{item.name}</h3></Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

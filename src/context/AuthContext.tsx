@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 
 export interface UserWithRole extends User {
@@ -39,15 +39,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const userData = userDocSnap.data();
           setCurrentUser({ ...user, role: userData.role });
         } else {
-          // Se o documento não existir, crie um com a role padrão 'jogador'.
-          console.log('Documento do usuário não encontrado no Firestore! Criando um novo...');
+          // Se o documento não existir, verifique se já existe um GM.
+          const usersRef = collection(db, 'users');
+          const q = query(usersRef, where('role', '==', 'gm'), limit(1));
+          const querySnapshot = await getDocs(q);
+
+          let role = 'jogador';
+          if (querySnapshot.empty) {
+            // Se não houver GMs, o primeiro usuário se torna GM.
+            role = 'gm';
+            console.log('Nenhum GM encontrado. O primeiro usuário foi definido como GM.');
+          }
+
           const newUser = {
             uid: user.uid,
             email: user.email,
-            role: 'jogador',
+            role: role,
           };
           await setDoc(doc(db, 'users', user.uid), newUser);
-          setCurrentUser({ ...user, role: 'jogador' });
+          setCurrentUser({ ...user, role: role as 'jogador' | 'gm' });
         }
       } else {
         setCurrentUser(null);

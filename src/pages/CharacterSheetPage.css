@@ -1,34 +1,12 @@
-.sheet-container {
-  display: flex;
-  gap: 2rem;
-  padding: 2rem;
-  max-width: 1200px;
-  margin: auto;
+/* Estilos de layout antigos como .sheet-container, .sheet-sidebar, etc., foram removidos 
+   pois a página agora usa a estrutura de .details-container. */
+
+.sheet-content-grid {
+  padding: 0 2rem 2rem 2rem;
 }
 
-.sheet-sidebar {
-  width: 250px;
-  flex-shrink: 0;
-}
-
-.sheet-main {
-  flex-grow: 1;
-}
-
-.sheet-section {
-  background-color: var(--secondary-color);
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-}
-
-.sheet-section h2 {
-  margin-top: 0;
-  font-family: 'Cinzel', serif;
-  color: var(--primary-color);
-  border-bottom: 2px solid var(--primary-color);
-  padding-bottom: 0.5rem;
-  margin-bottom: 1rem;
+.sheet-details-full-width {
+  /* Esta classe não é mais necessária com o layout de coluna única */
 }
 
 .attributes-list {
@@ -40,8 +18,9 @@
 .attributes-list li {
   display: flex;
   justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #444;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #333;
 }
 
 .attributes-list li:last-child {
@@ -50,101 +29,129 @@
 
 .attributes-list strong {
   color: var(--text-color);
+  font-size: 1.1rem;
 }
 
 .attributes-list .attribute-values {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   align-items: baseline;
 }
 
 .attributes-list .attribute-score {
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   color: var(--primary-color);
   font-weight: bold;
 }
 
 .attributes-list .attribute-bonus {
+  font-size: 1.1rem;
+  color: #ccc;
+}
+
+/* Estilos para os cards dentro da ficha */
+.sheet-content-grid .character-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.sheet-content-grid .character-card {
+  min-height: 50px;
+  max-height: 50px;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem 0;
+  overflow: hidden;
+}
+
+.sheet-content-grid .character-card .character-card-info {
+  background: transparent;
+  text-align: center;
+}
+
+.sheet-content-grid .character-card h3 {
   font-size: 1rem;
-  color: #ccc;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+  margin: 0;
 }
 
-.sheet-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.character-info {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.character-image {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid var(--primary-color);
-}
-
-.sheet-header h1 {
+.sheet-details-full-width h3 {
   font-family: 'Cinzel', serif;
-  font-size: 3rem;
-  margin: 0;
   color: var(--primary-color);
-}
-
-.sheet-header p {
-  margin: 0;
-  font-size: 1.2rem;
-  color: #ccc;
-}
-
-.sheet-pre {
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  background-color: var(--background-color);
-  padding: 1rem;
-  border-radius: 4px;
-  font-family: 'Roboto', sans-serif;
-  color: var(--text-color);
-}
-
-.edit-button {
-  display: inline-block;
-  background-color: var(--primary-color);
-  color: var(--background-color) !important;
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  text-decoration: none !important; /* Garante que o sublinhado seja removido */
-  font-weight: bold;
-  transition: background-color 0.3s;
-}
-
-.edit-button:hover {
-  background-color: #c8a051;
-}
-
-.link-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.link-list li {
+  margin-top: 1.5rem;
   margin-bottom: 0.5rem;
 }
 
-.link-list a {
-  color: var(--primary-color);
-  text-decoration: none;
-  transition: color 0.3s;
+.sheet-details-full-width p {
+  line-height: 1.6;
+  color: #ccc;
+  white-space: pre-wrap;
 }
 
-.link-list a:hover {
-  color: #c8a051;
-  text-decoration: underline;
+/* Novos estilos para a seção de Recursos */
+.resources-grid {
+  display: flex;
+  justify-content: space-between; /* Alterado para space-between para melhor controle com gap */
+  gap: 1rem; /* Adiciona espaçamento entre os cards */
+  padding: 1rem 0;
+}
+
+.resource-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Centraliza o conteúdo verticalmente */
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #444;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  flex: 1;
+  text-align: center;
+  background-size: 120%; /* Aplica o zoom na imagem de fundo */
+  background-position: center;
+  position: relative;
+  color: white;
+  overflow: hidden; /* Esconde as partes da imagem que excedem o card */
+  transition: background-size 0.4s ease-in-out; /* Adiciona transição suave */
+}
+
+.resource-item:hover {
+  background-size: 130%; /* Aumenta o zoom no hover para um efeito dinâmico */
+}
+
+.resource-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 1; /* Garante que o conteúdo fique acima da sobreposição */
+}
+
+.resource-icon {
+  font-size: 2.5rem; /* Aumenta o ícone */
+  text-shadow: 0 0 10px var(--primary-color); /* Adiciona um brilho sutil */
+}
+
+.resource-value {
+  font-family: 'Cinzel', serif;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #fff; /* Alterado para branco para melhor contraste */
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8); /* Sombra para legibilidade */
+}
+
+.resource-label {
+  font-size: 0.9rem;
+  color: #fff; /* Alterado para branco */
+  text-transform: uppercase;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+
+/* Responsividade */
+@media (max-width: 768px) {
+  /* Nenhuma regra específica necessária aqui por enquanto, o layout já é de coluna única */
 }

@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
-import './CharacterSheetPage.css'; // Reutilizando estilos
+import { convertGoogleDriveLink } from '../utils/imageUtils';
+import './DetailsPage.css'; // Usando o novo estilo padrão
 
 interface SpellData {
   name: string;
@@ -51,25 +52,32 @@ const SpellDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="sheet-container">
-      <main className="sheet-main">
-        <div className="sheet-header">
-          {spellData.imageUrl && <img src={spellData.imageUrl} alt={spellData.name} className="character-image" />}
+    <div className="details-container">
+      <header className="details-hero">
+        {spellData.imageUrl && (
+          <img 
+            src={convertGoogleDriveLink(spellData.imageUrl)} 
+            alt={spellData.name} 
+            className="details-hero-image" 
+          />
+        )}
+        <div className="details-hero-content">
           <div>
             <h1>{spellData.name}</h1>
-            <p>Nível: {spellData.level} | Escola: {spellData.school}</p>
+            <p style={{ margin: 0, color: '#ccc' }}>{spellData.type} de Nível {spellData.level} | Escola: {spellData.school}</p>
           </div>
           {currentUser?.role === 'gm' && (
-            <Link to={`/edit-spell/${id}`} className="edit-button">
+            <Link to={`/edit-spell/${id}`} className="details-edit-button">
               Editar
             </Link>
           )}
         </div>
-        <div className="sheet-section">
-          <h2>Descrição</h2>
-          <pre className="sheet-pre">{spellData.description}</pre>
-        </div>
-      </main>
+      </header>
+
+      <div className="details-card">
+        <h2 className="details-card-title">Descrição</h2>
+        <pre className="details-pre">{spellData.description}</pre>
+      </div>
     </div>
   );
 };

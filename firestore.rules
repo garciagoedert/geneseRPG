@@ -25,10 +25,10 @@ service cloud.firestore {
       allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'gm';
     }
 
-    // Todos podem ler, mas apenas GMs podem escrever.
+    // GMs podem ler/escrever, jogadores podem ler itens visíveis e donos podem ler/editar seus próprios.
     match /items/{itemId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'gm';
+      allow read: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'gm' || resource.data.visibleToPlayers == true || request.auth.uid == resource.data.ownerId);
+      allow write: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'gm' || request.auth.uid == resource.data.ownerId);
     }
 
     // GMs podem ler todos os mapas. Usuários podem manipular apenas os seus.
