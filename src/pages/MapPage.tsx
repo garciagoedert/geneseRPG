@@ -73,7 +73,6 @@ const MapPage: React.FC = () => {
   const stageRef = useRef<Konva.Stage>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-  const [mapName, setMapName] = useState('');
 
   // Efeito para carregar os dados do mapa
   useEffect(() => {
@@ -83,7 +82,6 @@ const MapPage: React.FC = () => {
       const mapSnap = await getDoc(mapRef);
       if (mapSnap.exists()) {
         const data = mapSnap.data();
-        setMapName(data.name);
         if (data.mapState) {
           const state = JSON.parse(data.mapState);
           setTokens(state.tokens || []);
@@ -248,7 +246,7 @@ const MapPage: React.FC = () => {
         width: largeDim * 2,
         height: largeDim * 2,
         fill: '#1a1f2c',
-        fillPatternImage: patternCanvas,
+        fillPatternImage: patternCanvas as any,
         fillPatternRepeat: 'repeat',
       }));
 
