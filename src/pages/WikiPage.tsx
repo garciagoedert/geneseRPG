@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
-import './WikiPage.css';
+import './Mesa.css'; // Estilo centralizado
 
 interface WikiEntry {
   id: string;
@@ -93,10 +93,12 @@ const WikiPage: React.FC = () => {
         {filteredEntries.length > 0 ? (
           filteredEntries.map(entry => (
             <div key={entry.id} className="character-card">
-              <div className="card-content">
-                <h3>{entry.title}</h3>
-                <p>{entry.content.substring(0, 100)}...</p>
-              </div>
+              <Link to={`/wiki/${entry.id}`} className="character-card-link">
+                <div className="card-content">
+                  <h3>{entry.title}</h3>
+                  <p>{entry.content.substring(0, 100)}...</p>
+                </div>
+              </Link>
               {currentUser?.role === 'gm' && (
                 <div className="gm-controls">
                   <button onClick={() => toggleVisibility(entry.id, entry.visibleToPlayers)}>

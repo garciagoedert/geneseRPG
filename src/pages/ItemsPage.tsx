@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
-import './BestiaryPage.css'; // Reutilizando estilos
+import './Mesa.css'; // Estilo centralizado
 
 interface Item {
   id: string;
@@ -94,12 +94,14 @@ const ItemsPage: React.FC = () => {
         {filteredItems.length > 0 ? (
           filteredItems.map(item => (
             <div key={item.id} className="character-card">
-              {item.imageUrl && <img src={item.imageUrl} alt={item.name} className="card-image" />}
-              <div className="card-content">
-                <h3>{item.name}</h3>
-                <p>Tipo: {item.type} | Raridade: {item.rarity}</p>
-                <p>{item.description.substring(0, 100)}...</p>
-              </div>
+              <Link to={`/item/${item.id}`} className="character-card-link">
+                {item.imageUrl && <img src={item.imageUrl} alt={item.name} className="card-image" />}
+                <div className="card-content">
+                  <h3>{item.name}</h3>
+                  <p>Tipo: {item.type} | Raridade: {item.rarity}</p>
+                  <p>{item.description.substring(0, 100)}...</p>
+                </div>
+              </Link>
               {currentUser?.role === 'gm' && (
                 <div className="gm-controls">
                   <button onClick={() => toggleVisibility(item.id, item.visibleToPlayers)}>

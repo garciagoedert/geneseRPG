@@ -5,29 +5,26 @@ import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import './CharacterSheetPage.css'; // Reutilizando estilos
 
-interface ItemData {
-  name: string;
-  type: string;
-  rarity: string;
-  description: string;
-  imageUrl?: string;
+interface WikiEntryData {
+  title: string;
+  content: string;
 }
 
-const ItemDetailPage: React.FC = () => {
+const WikiEntryDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { currentUser } = useAuth();
-  const [itemData, setItemData] = useState<ItemData | null>(null);
+  const [entryData, setEntryData] = useState<WikiEntryData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchItemData = async () => {
+    const fetchEntryData = async () => {
       if (!id) return;
       try {
-        const docRef = doc(db, 'items', id);
+        const docRef = doc(db, 'wiki', id);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          setItemData(docSnap.data() as ItemData);
+          setEntryData(docSnap.data() as WikiEntryData);
         } else {
           console.error("No such document!");
         }
@@ -38,39 +35,37 @@ const ItemDetailPage: React.FC = () => {
       }
     };
 
-    fetchItemData();
+    fetchEntryData();
   }, [id]);
 
   if (loading) {
     return <div>Carregando...</div>;
   }
 
-  if (!itemData) {
-    return <div>Item não encontrado.</div>;
+  if (!entryData) {
+    return <div>Artigo não encontrado.</div>;
   }
 
   return (
     <div className="sheet-container">
       <main className="sheet-main">
         <div className="sheet-header">
-          {itemData.imageUrl && <img src={itemData.imageUrl} alt={itemData.name} className="character-image" />}
           <div>
-            <h1>{itemData.name}</h1>
-            <p>Tipo: {itemData.type} | Raridade: {itemData.rarity}</p>
+            <h1>{entryData.title}</h1>
           </div>
           {currentUser?.role === 'gm' && (
-            <Link to={`/edit-item/${id}`} className="edit-button">
+            <Link to={`/edit-wiki-entry/${id}`} className="edit-button">
               Editar
             </Link>
           )}
         </div>
         <div className="sheet-section">
-          <h2>Descrição</h2>
-          <pre className="sheet-pre">{itemData.description}</pre>
+          <h2>Conteúdo</h2>
+          <pre className="sheet-pre">{entryData.content}</pre>
         </div>
       </main>
     </div>
   );
 };
 
-export default ItemDetailPage;
+export default WikiEntryDetailPage;

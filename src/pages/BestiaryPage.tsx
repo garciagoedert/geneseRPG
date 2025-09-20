@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
-import './BestiaryPage.css'; // Novo CSS
+import './Mesa.css'; // Estilo centralizado
 
 interface Creature {
   id: string;
@@ -95,11 +95,13 @@ const BestiaryPage: React.FC = () => {
         {filteredCreatures.length > 0 ? (
           filteredCreatures.map(creature => (
             <div key={creature.id} className="character-card">
-              {creature.imageUrl && <img src={creature.imageUrl} alt={creature.name} className="card-image" />}
-              <div className="card-content">
-                <h3>{creature.name}</h3>
-                <p>{creature.description.substring(0, 100)}...</p>
-              </div>
+              <Link to={`/creature/${creature.id}`} className="character-card-link">
+                {creature.imageUrl && <img src={creature.imageUrl} alt={creature.name} className="card-image" />}
+                <div className="card-content">
+                  <h3>{creature.name}</h3>
+                  <p>{creature.description.substring(0, 100)}...</p>
+                </div>
+              </Link>
               {currentUser?.role === 'gm' && (
                 <div className="gm-controls">
                   <button onClick={() => toggleVisibility(creature.id, creature.visibleToPlayers)}>

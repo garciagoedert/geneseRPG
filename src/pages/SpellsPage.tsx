@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, query, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
-import './SpellsPage.css';
+import './Mesa.css'; // Estilo centralizado
 
 interface Spell {
   id: string;
@@ -94,12 +94,14 @@ const SpellsPage: React.FC = () => {
         {filteredSpells.length > 0 ? (
           filteredSpells.map(spell => (
             <div key={spell.id} className="character-card">
-              {spell.imageUrl && <img src={spell.imageUrl} alt={spell.name} className="card-image" />}
-              <div className="card-content">
-                <h3>{spell.name} ({spell.type})</h3>
-                <p>Nível: {spell.level}</p>
-                <p>{spell.description.substring(0, 100)}...</p>
-              </div>
+              <Link to={`/spell/${spell.id}`} className="character-card-link">
+                {spell.imageUrl && <img src={spell.imageUrl} alt={spell.name} className="card-image" />}
+                <div className="card-content">
+                  <h3>{spell.name} ({spell.type})</h3>
+                  <p>Nível: {spell.level}</p>
+                  <p>{spell.description.substring(0, 100)}...</p>
+                </div>
+              </Link>
               {currentUser?.role === 'gm' && (
                 <div className="gm-controls">
                   <button onClick={() => toggleVisibility(spell.id, spell.visibleToPlayers)}>

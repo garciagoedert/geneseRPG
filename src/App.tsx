@@ -10,6 +10,7 @@ import GMViewPage from './pages/GMViewPage';
 import BestiaryPage from './pages/BestiaryPage';
 import AddCreaturePage from './pages/AddCreaturePage';
 import EditCreaturePage from './pages/EditCreaturePage';
+import CreatureDetailPage from './pages/CreatureDetailPage';
 import SpellsPage from './pages/SpellsPage';
 import AddSpellPage from './pages/AddSpellPage';
 import EditSpellPage from './pages/EditSpellPage';
@@ -21,6 +22,7 @@ import ItemDetailPage from './pages/ItemDetailPage';
 import WikiPage from './pages/WikiPage';
 import AddWikiEntryPage from './pages/AddWikiEntryPage';
 import EditWikiEntryPage from './pages/EditWikiEntryPage';
+import WikiEntryDetailPage from './pages/WikiEntryDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -120,6 +122,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <EditCreaturePage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/creature/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <CreatureDetailPage />
               </Layout>
             </ProtectedRoute>
           }
@@ -230,6 +242,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <EditWikiEntryPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/wiki/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <WikiEntryDetailPage />
               </Layout>
             </ProtectedRoute>
           }

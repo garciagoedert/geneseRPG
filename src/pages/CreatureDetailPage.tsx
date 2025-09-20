@@ -5,29 +5,28 @@ import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import './CharacterSheetPage.css'; // Reutilizando estilos
 
-interface ItemData {
+interface CreatureData {
   name: string;
-  type: string;
-  rarity: string;
   description: string;
+  stats: string;
   imageUrl?: string;
 }
 
-const ItemDetailPage: React.FC = () => {
+const CreatureDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { currentUser } = useAuth();
-  const [itemData, setItemData] = useState<ItemData | null>(null);
+  const [creatureData, setCreatureData] = useState<CreatureData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchItemData = async () => {
+    const fetchCreatureData = async () => {
       if (!id) return;
       try {
-        const docRef = doc(db, 'items', id);
+        const docRef = doc(db, 'bestiary', id);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          setItemData(docSnap.data() as ItemData);
+          setCreatureData(docSnap.data() as CreatureData);
         } else {
           console.error("No such document!");
         }
@@ -38,39 +37,42 @@ const ItemDetailPage: React.FC = () => {
       }
     };
 
-    fetchItemData();
+    fetchCreatureData();
   }, [id]);
 
   if (loading) {
     return <div>Carregando...</div>;
   }
 
-  if (!itemData) {
-    return <div>Item não encontrado.</div>;
+  if (!creatureData) {
+    return <div>Criatura não encontrada.</div>;
   }
 
   return (
     <div className="sheet-container">
       <main className="sheet-main">
         <div className="sheet-header">
-          {itemData.imageUrl && <img src={itemData.imageUrl} alt={itemData.name} className="character-image" />}
+          {creatureData.imageUrl && <img src={creatureData.imageUrl} alt={creatureData.name} className="character-image" />}
           <div>
-            <h1>{itemData.name}</h1>
-            <p>Tipo: {itemData.type} | Raridade: {itemData.rarity}</p>
+            <h1>{creatureData.name}</h1>
           </div>
           {currentUser?.role === 'gm' && (
-            <Link to={`/edit-item/${id}`} className="edit-button">
+            <Link to={`/edit-creature/${id}`} className="edit-button">
               Editar
             </Link>
           )}
         </div>
         <div className="sheet-section">
           <h2>Descrição</h2>
-          <pre className="sheet-pre">{itemData.description}</pre>
+          <pre className="sheet-pre">{creatureData.description}</pre>
+        </div>
+        <div className="sheet-section">
+          <h2>Estatísticas</h2>
+          <pre className="sheet-pre">{creatureData.stats}</pre>
         </div>
       </main>
     </div>
   );
 };
 
-export default ItemDetailPage;
+export default CreatureDetailPage;

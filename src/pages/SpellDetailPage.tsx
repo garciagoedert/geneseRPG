@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
+import { useAuth } from '../context/AuthContext';
 import './CharacterSheetPage.css'; // Reutilizando estilos
 
 interface SpellData {
   name: string;
   type: 'magia' | 'habilidade';
   level: number;
+  school: string;
   description: string;
   imageUrl?: string;
 }
 
 const SpellDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { currentUser } = useAuth();
   const [spellData, setSpellData] = useState<SpellData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -54,8 +57,13 @@ const SpellDetailPage: React.FC = () => {
           {spellData.imageUrl && <img src={spellData.imageUrl} alt={spellData.name} className="character-image" />}
           <div>
             <h1>{spellData.name}</h1>
-            <p>Tipo: {spellData.type} | Nível: {spellData.level}</p>
+            <p>Nível: {spellData.level} | Escola: {spellData.school}</p>
           </div>
+          {currentUser?.role === 'gm' && (
+            <Link to={`/edit-spell/${id}`} className="edit-button">
+              Editar
+            </Link>
+          )}
         </div>
         <div className="sheet-section">
           <h2>Descrição</h2>
