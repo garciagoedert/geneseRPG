@@ -4,7 +4,13 @@ service firebase.storage {
     // Apenas GMs podem fazer upload de imagens para a wiki.
     match /wiki-images/{imageId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow write: if request.auth.token.role == 'gm';
+    }
+
+    // Usuários podem fazer upload de imagens para seus próprios personagens.
+    match /character-images/{userId}/{imageId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.uid == userId;
     }
   }
 }
