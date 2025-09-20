@@ -8,6 +8,7 @@ import './CharacterSheetPage.css'; // Reutilizando estilos
 interface WikiEntryData {
   title: string;
   content: string;
+  imageUrl?: string;
 }
 
 const WikiEntryDetailPage: React.FC = () => {
@@ -59,6 +60,11 @@ const WikiEntryDetailPage: React.FC = () => {
             </Link>
           )}
         </div>
+        {entryData.imageUrl && (
+          <div className="sheet-section">
+            <img src={entryData.imageUrl} alt={entryData.title} style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }} />
+          </div>
+        )}
         <div className="sheet-section">
           <h2>Conteúdo</h2>
           <pre className="sheet-pre">{entryData.content}</pre>

@@ -37,5 +37,11 @@ service cloud.firestore {
       allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
     }
+
+    // GMs podem escrever na Wiki. Jogadores só podem ler o que for visível.
+    match /wiki/{entryId} {
+      allow read: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'gm' || resource.data.visibleToPlayers == true);
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'gm';
+    }
   }
 }

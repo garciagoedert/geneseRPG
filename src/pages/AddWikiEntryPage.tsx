@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db } from '../firebaseConfig';
+import { db, storage } from '../firebaseConfig';
 import { collection, addDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
 import './Auth.css'; // Reutilizando o CSS
 
@@ -10,28 +11,49 @@ const AddWikiEntryPage: React.FC = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [image, setImage] = useState<File | null>(null);
   const [visibleToPlayers, setVisibleToPlayers] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImage(e.target.files[0]);
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
+    setLoading(true);
 
     if (currentUser?.role !== 'gm') {
       setError('Você não tem permissão para adicionar artigos na Wiki.');
+      setLoading(false);
       return;
     }
 
     try {
+      let imageUrl = '';
+      if (image) {
+        const storageRef = ref(storage, `wiki-images/${Date.now()}-${image.name}`);
+        const snapshot = await uploadBytes(storageRef, image);
+        imageUrl = await getDownloadURL(snapshot.ref);
+      }
+
       await addDoc(collection(db, 'wiki'), {
         title,
         content,
+        imageUrl,
         visibleToPlayers,
         createdAt: new Date(),
       });
       navigate('/wiki');
     } catch (e) {
       setError('Não foi possível adicionar o artigo.');
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,6 +84,15 @@ const AddWikiEntryPage: React.FC = () => {
             rows={15}
           />
         </div>
+        <div>
+          <label htmlFor="image">Imagem</label>
+          <input
+            type="file"
+            id="image"
+            onChange={handleImageChange}
+            accept="image/*"
+          />
+        </div>
         <div className="checkbox-container">
           <label htmlFor="visibleToPlayers">Visível para Jogadores?</label>
           <input
@@ -71,7 +102,9 @@ const AddWikiEntryPage: React.FC = () => {
             onChange={(e) => setVisibleToPlayers(e.target.checked)}
           />
         </div>
-        <button type="submit">Salvar Artigo</button>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Salvando...' : 'Salvar Artigo'}
+        </button>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
