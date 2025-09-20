@@ -47,7 +47,7 @@
   font-family: 'Roboto', sans-serif;
 }
 
-.character-card-link {
+.character-card-link, .character-card-link:hover {
   text-decoration: none;
   color: inherit;
 }
@@ -70,6 +70,7 @@
   margin-top: 0;
   color: var(--primary-color);
   font-family: 'Cinzel', serif;
+  text-decoration: none;
 }
 
 .character-card p {

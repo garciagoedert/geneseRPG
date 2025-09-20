@@ -18,6 +18,7 @@ interface SpellSelectorProps {
 const SpellSelector: React.FC<SpellSelectorProps> = ({ selectedIds, onChange, typeToShow }) => {
   const [allItems, setAllItems] = useState<Spell[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedItem, setSelectedItem] = useState<Spell | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,9 +37,16 @@ const SpellSelector: React.FC<SpellSelectorProps> = ({ selectedIds, onChange, ty
     fetchItems();
   }, [typeToShow]);
 
-  const handleSelect = (id: string) => {
-    if (!selectedIds.includes(id)) {
-      onChange([...selectedIds, id]);
+  const handleSelectItem = (item: Spell) => {
+    setSelectedItem(item);
+    setSearchTerm(item.name);
+  };
+
+  const handleAdd = () => {
+    if (selectedItem && !selectedIds.includes(selectedItem.id)) {
+      onChange([...selectedIds, selectedItem.id]);
+      setSearchTerm('');
+      setSelectedItem(null);
     }
   };
 
@@ -46,11 +54,13 @@ const SpellSelector: React.FC<SpellSelectorProps> = ({ selectedIds, onChange, ty
     onChange(selectedIds.filter(selectedId => selectedId !== id));
   };
 
-  const filteredItems = allItems.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) && !selectedIds.includes(item.id)
-  );
+  const filteredItems = searchTerm
+    ? allItems.filter(item =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) && !selectedIds.includes(item.id)
+      )
+    : [];
 
-  const selectedItems = allItems.filter(item => selectedIds.includes(item.id));
+  const selectedItemsDisplay = allItems.filter(item => selectedIds.includes(item.id));
 
   if (loading) {
     return <p>Carregando...</p>;
@@ -61,28 +71,32 @@ const SpellSelector: React.FC<SpellSelectorProps> = ({ selectedIds, onChange, ty
       <fieldset>
         <legend>{typeToShow === 'magia' ? 'Magias' : 'Habilidades'}</legend>
         <div className="selected-items">
-          {selectedItems.map(item => (
+          {selectedItemsDisplay.map(item => (
             <div key={item.id} className="selected-item">
               <span>{item.name}</span>
-              <button type="button" onClick={() => handleDeselect(item.id)}>Remover</button>
+              <button type="button" onClick={() => handleDeselect(item.id)} className="remove-button">X</button>
             </div>
           ))}
         </div>
-        <input
-          type="text"
-          placeholder={`Buscar ${typeToShow}...`}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
-        <div className="available-items">
-          {filteredItems.map(item => (
-            <div key={item.id} className="available-item">
-              <span>{item.name}</span>
-              <button type="button" onClick={() => handleSelect(item.id)}>Adicionar</button>
-            </div>
-          ))}
+        <div className="search-add-container">
+          <input
+            type="text"
+            placeholder={`Buscar ${typeToShow}...`}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+          <button type="button" onClick={handleAdd} className="add-button">Adicionar</button>
         </div>
+        {searchTerm && (
+          <div className="available-items">
+            {filteredItems.map(item => (
+              <div key={item.id} className="available-item" onClick={() => handleSelectItem(item)}>
+                <span>{item.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </fieldset>
     </div>
   );
