@@ -40,33 +40,42 @@ const MesaPage: React.FC = () => {
         return;
       }
       try {
-        // Buscar dados do usuário
         const userDocRef = doc(db, 'users', currentUser.uid);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
-          setUserData(userDocSnap.data() as UserData);
+          const userData = userDocSnap.data() as UserData;
+          setUserData(userData);
+
+          const q = query(collection(db, "characterSheets"), where("ownerId", "==", currentUser.uid));
+          const querySnapshot = await getDocs(q);
+          const sheets: CharacterSheet[] = [];
+          querySnapshot.forEach((doc) => {
+            sheets.push({ id: doc.id, ...doc.data() } as CharacterSheet);
+          });
+          setCharacterSheets(sheets);
+
+          const campaignId = localStorage.getItem('selectedCampaignId');
+          if (campaignId) {
+            let mapsQuery;
+            if (userData.role === 'gm') {
+              mapsQuery = query(collection(db, "maps"), where("campaignId", "==", campaignId));
+            } else {
+              mapsQuery = query(
+                collection(db, "maps"),
+                where("campaignId", "==", campaignId),
+                where("visibleToPlayers", "==", true)
+              );
+            }
+            const mapsSnapshot = await getDocs(mapsQuery);
+            const mapsList: MapData[] = [];
+            mapsSnapshot.forEach((doc) => {
+              mapsList.push({ id: doc.id, ...doc.data() } as MapData);
+            });
+            setMaps(mapsList);
+          }
         } else {
           console.error("Documento do usuário não encontrado no Firestore!");
         }
-
-        // Buscar fichas de personagem
-        const q = query(collection(db, "characterSheets"), where("ownerId", "==", currentUser.uid));
-        const querySnapshot = await getDocs(q);
-        const sheets: CharacterSheet[] = [];
-        querySnapshot.forEach((doc) => {
-          sheets.push({ id: doc.id, ...doc.data() } as CharacterSheet);
-        });
-        setCharacterSheets(sheets);
-
-        // Buscar mapas
-        const mapsQuery = query(collection(db, "maps"), where("ownerId", "==", currentUser.uid));
-        const mapsSnapshot = await getDocs(mapsQuery);
-        const mapsList: MapData[] = [];
-        mapsSnapshot.forEach((doc) => {
-          mapsList.push({ id: doc.id, ...doc.data() } as MapData);
-        });
-        setMaps(mapsList);
-
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
       } finally {

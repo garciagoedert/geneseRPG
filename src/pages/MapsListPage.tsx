@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import GMActionModal from '../components/GMActionModal';
 import { convertGoogleDriveLink } from '../utils/imageUtils';
@@ -13,6 +13,11 @@ interface MapData {
   ownerId: string;
   imageUrl?: string;
   description?: string;
+  campaignId?: string;
+}
+
+interface UserData {
+  role: 'jogador' | 'gm';
 }
 
 const MapsListPage: React.FC = () => {
@@ -21,13 +26,43 @@ const MapsListPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMap, setSelectedMap] = useState<MapData | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (currentUser) {
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          setUserData(userDocSnap.data() as UserData);
+        }
+      }
+    };
+    fetchUserData();
+  }, [currentUser]);
 
   useEffect(() => {
     const fetchMaps = async () => {
-      if (!currentUser) return;
+      if (!currentUser || !userData) return;
+
+      const campaignId = localStorage.getItem('selectedCampaignId');
+      if (!campaignId) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const q = query(collection(db, "maps"), where("ownerId", "==", currentUser.uid));
-        const querySnapshot = await getDocs(q);
+        let mapsQuery;
+        if (userData.role === 'gm') {
+          mapsQuery = query(collection(db, "maps"), where("campaignId", "==", campaignId));
+        } else {
+          mapsQuery = query(
+            collection(db, "maps"),
+            where("campaignId", "==", campaignId),
+            where("visibleToPlayers", "==", true)
+          );
+        }
+        const querySnapshot = await getDocs(mapsQuery);
         const mapsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MapData));
         setMaps(mapsList);
       } catch (error) {
@@ -37,8 +72,10 @@ const MapsListPage: React.FC = () => {
       }
     };
 
-    fetchMaps();
-  }, [currentUser]);
+    if (userData) {
+      fetchMaps();
+    }
+  }, [currentUser, userData]);
 
   const handleCardClick = (map: MapData) => {
     setSelectedMap(map);
@@ -58,15 +95,29 @@ const MapsListPage: React.FC = () => {
     const description = prompt("Digite uma breve descrição ou história para o mapa (opcional):");
 
     if (currentUser) {
+      const campaignId = localStorage.getItem('selectedCampaignId');
+      if (!campaignId) {
+        alert("Nenhuma campanha selecionada!");
+        return;
+      }
       try {
         const newMapRef = await addDoc(collection(db, "maps"), {
           name: mapName,
           ownerId: currentUser.uid,
+          campaignId: campaignId,
           imageUrl: imageUrl || '',
           description: description || '',
-          mapState: JSON.stringify({ tokens: [], assets: [], lines: [] }) // Estado inicial vazio
+          visibleToPlayers: false, // Por padrão, não é visível
+          mapState: JSON.stringify({ tokens: [], assets: [], lines: [] })
         });
-        const newMapData = { id: newMapRef.id, name: mapName, ownerId: currentUser.uid, imageUrl: imageUrl || '', description: description || '' };
+        const newMapData = { 
+          id: newMapRef.id, 
+          name: mapName, 
+          ownerId: currentUser.uid, 
+          campaignId: campaignId,
+          imageUrl: imageUrl || '', 
+          description: description || '' 
+        };
         setMaps(prevMaps => [...prevMaps, newMapData]);
       } catch (error) {
         console.error("Erro ao criar novo mapa:", error);
