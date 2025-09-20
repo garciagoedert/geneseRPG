@@ -1,9 +1,8 @@
 .layout-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   background-color: var(--background-color);
-  overflow: hidden;
 }
 
 .app-header {
@@ -141,5 +140,4 @@
   flex-grow: 1;
   padding: 2rem;
   padding-top: 80px; /* 60px do header + 20px de margem */
-  overflow-y: auto;
 }
