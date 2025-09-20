@@ -15,12 +15,12 @@ const CreateCharacterPage: React.FC = () => {
   const [characterClass, setCharacterClass] = useState('');
   const [level, setLevel] = useState(1);
   const [attributes, setAttributes] = useState({
-    strength: 10,
-    dexterity: 10,
-    constitution: 10,
-    intelligence: 10,
-    wisdom: 10,
-    charisma: 10,
+    strength: { score: 10, bonus: 0 },
+    dexterity: { score: 10, bonus: 0 },
+    constitution: { score: 10, bonus: 0 },
+    intelligence: { score: 10, bonus: 0 },
+    wisdom: { score: 10, bonus: 0 },
+    charisma: { score: 10, bonus: 0 },
   });
   const [inventory, setInventory] = useState<string[]>([]);
   const [abilities, setAbilities] = useState<string[]>([]); // Agora um array de IDs
@@ -39,9 +39,15 @@ const CreateCharacterPage: React.FC = () => {
     }
   };
 
-  const handleAttributeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setAttributes(prev => ({ ...prev, [name]: parseInt(value, 10) || 0 }));
+  const handleAttributeChange = (e: React.ChangeEvent<HTMLInputElement>, attr: string, field: 'score' | 'bonus') => {
+    const { value } = e.target;
+    setAttributes(prev => ({
+      ...prev,
+      [attr]: {
+        ...prev[attr as keyof typeof prev],
+        [field]: parseInt(value, 10) || 0,
+      },
+    }));
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -163,16 +169,27 @@ const CreateCharacterPage: React.FC = () => {
         </div>
         <fieldset>
           <legend>Atributos</legend>
-          {Object.entries(attributes).map(([key, value]) => (
-            <div key={key}>
+          {Object.entries(attributes).map(([key, values]) => (
+            <div key={key} className="attribute-input">
               <label htmlFor={key}>{attributeTranslations[key] || key}</label>
-              <input
-                type="number"
-                id={key}
-                name={key}
-                value={value}
-                onChange={handleAttributeChange}
-              />
+              <div className="attribute-wrapper">
+                <input
+                  type="number"
+                  id={`${key}-score`}
+                  name={`${key}-score`}
+                  value={values.score}
+                  onChange={(e) => handleAttributeChange(e, key, 'score')}
+                  placeholder="Pontos"
+                />
+                <input
+                  type="number"
+                  id={`${key}-bonus`}
+                  name={`${key}-bonus`}
+                  value={values.bonus}
+                  onChange={(e) => handleAttributeChange(e, key, 'bonus')}
+                  placeholder="Bônus"
+                />
+              </div>
             </div>
           ))}
         </fieldset>

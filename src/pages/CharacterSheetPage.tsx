@@ -6,17 +6,22 @@ import { useAuth } from '../context/AuthContext';
 import './CharacterSheetPage.css';
 
 // Definindo uma interface para a estrutura da ficha
+interface Attribute {
+  score: number;
+  bonus: number;
+}
+
 interface CharacterSheetData {
   name: string;
   class: string;
   level: number;
   attributes: {
-    strength: number;
-    dexterity: number;
-    constitution: number;
-    intelligence: number;
-    wisdom: number;
-    charisma: number;
+    strength: Attribute | number;
+    dexterity: Attribute | number;
+    constitution: Attribute | number;
+    intelligence: Attribute | number;
+    wisdom: Attribute | number;
+    charisma: Attribute | number;
   };
   inventory: string[];
   abilities: string[];
@@ -104,18 +109,40 @@ const CharacterSheetPage: React.FC = () => {
     charisma: 'Carisma',
   };
 
+  const getAttributeDisplay = (attr: Attribute | number) => {
+    if (typeof attr === 'number') {
+      const bonus = Math.floor((attr - 10) / 2);
+      return {
+        score: attr,
+        bonus: bonus,
+        bonusDisplay: `(${bonus >= 0 ? '+' : ''}${bonus})`,
+      };
+    }
+    return {
+      score: attr.score,
+      bonus: attr.bonus,
+      bonusDisplay: `(${attr.bonus >= 0 ? '+' : ''}${attr.bonus})`,
+    };
+  };
+
   return (
     <div className="sheet-container">
       <aside className="sheet-sidebar">
         <div className="sheet-section">
           <h2>Atributos</h2>
           <ul className="attributes-list">
-            {Object.entries(sheetData.attributes).map(([key, value]) => (
-              <li key={key}>
-                <strong>{attributeTranslations[key] || key}</strong>
-                <span>{value}</span>
-              </li>
-            ))}
+            {Object.entries(sheetData.attributes).map(([key, value]) => {
+              const { score, bonusDisplay } = getAttributeDisplay(value);
+              return (
+                <li key={key}>
+                  <strong>{attributeTranslations[key] || key}</strong>
+                  <div className="attribute-values">
+                    <span className="attribute-score">{score}</span>
+                    <span className="attribute-bonus">{bonusDisplay}</span>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </aside>

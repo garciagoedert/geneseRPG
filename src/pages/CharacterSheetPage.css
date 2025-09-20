@@ -52,10 +52,21 @@
   color: var(--text-color);
 }
 
-.attributes-list span {
+.attributes-list .attribute-values {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.attributes-list .attribute-score {
   font-size: 1.2rem;
   color: var(--primary-color);
   font-weight: bold;
+}
+
+.attributes-list .attribute-bonus {
+  font-size: 1rem;
+  color: #ccc;
 }
 
 .sheet-header {

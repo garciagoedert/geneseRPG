@@ -74,6 +74,28 @@
   background-color: var(--secondary-color);
   padding: 2rem;
   border-radius: 8px;
-  width: 100%;
   max-width: 800px; /* Largura maior para a ficha */
+  margin: 2rem auto; /* Centraliza e adiciona margem */
+}
+
+.attribute-input {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.attribute-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.attribute-wrapper input {
+  flex-grow: 1;
+}
+
+.attribute-bonus-display {
+  font-size: 1rem;
+  color: #ccc;
+  min-width: 40px; /* Garante alinhamento */
 }

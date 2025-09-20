@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
-import { collection, getDocs, doc, deleteDoc, addDoc, query } from 'firebase/firestore';
+import { collection, getDocs, doc, deleteDoc, addDoc, query, getDoc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 
 interface CharacterSummary {
@@ -25,12 +25,22 @@ const GMViewPage: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (currentUser?.role !== 'gm') {
+      if (!currentUser) {
         setLoading(false);
         return;
       }
       try {
-        // Fetch characters
+        // Primeiro, busca os dados do usuário para verificar a role
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (!userDocSnap.exists() || userDocSnap.data().role !== 'gm') {
+          setLoading(false);
+          // Opcional: redirecionar ou mostrar mensagem de acesso negado mais robusta
+          return;
+        }
+
+        // Se for GM, busca o resto dos dados
         const charactersSnapshot = await getDocs(collection(db, 'characterSheets'));
         const chars = charactersSnapshot.docs.map(doc => ({
           id: doc.id,
@@ -71,11 +81,11 @@ const GMViewPage: React.FC = () => {
   };
 
   const filteredCharacters = characters.filter(char =>
-    char.name.toLowerCase().includes(searchTerm.toLowerCase())
+    char.name && char.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredMaps = maps.filter(map =>
-    map.name.toLowerCase().includes(searchTerm.toLowerCase())
+    map.name && map.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const populateDatabase = async () => {
@@ -147,7 +157,7 @@ const GMViewPage: React.FC = () => {
     <div className="mesa-container">
       <div className="mesa-header">
         <h1>Visão do Mestre</h1>
-        <button onClick={populateDatabase} className="gm-button">Popular com Exemplos</button>
+        <button onClick={populateDatabase} className="gm-header-button">Popular com Exemplos</button>
       </div>
 
       <input
@@ -183,7 +193,7 @@ const GMViewPage: React.FC = () => {
         <div className="section-header">
           <h2>Mapas</h2>
           <Link to="/maps">
-            <button className="gm-button">Gerenciar Mapas</button>
+            <button className="gm-header-button">Gerenciar Mapas</button>
           </Link>
         </div>
         <div className="character-list">

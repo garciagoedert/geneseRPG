@@ -39,7 +39,7 @@
   margin: 0;
 }
 
-.mesa-header button {
+.mesa-header button, .gm-header-button {
   background-color: var(--primary-color);
   color: var(--background-color);
   border: none;

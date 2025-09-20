@@ -26,10 +26,12 @@ import EditWikiEntryPage from './pages/EditWikiEntryPage';
 import WikiEntryDetailPage from './pages/WikiEntryDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* Rotas Públicas */}
         <Route path="/login" element={<LoginPage />} />
