@@ -3,13 +3,12 @@ import { onAuthStateChanged, type User } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 
-export interface UserWithDetails extends User {
+export interface UserWithRole extends User {
   role?: 'jogador' | 'gm';
-  campaignId?: string;
 }
 
 interface AuthContextType {
-  currentUser: UserWithDetails | null;
+  currentUser: UserWithRole | null;
   loading: boolean;
 }
 
@@ -28,7 +27,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<UserWithDetails | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserWithRole | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,7 +37,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
-          setCurrentUser({ ...user, role: userData.role, campaignId: userData.campaignId });
+          setCurrentUser({ ...user, role: userData.role });
         } else {
           // Se o documento não existir, verifique se já existe um GM.
           const usersRef = collection(db, 'users');
@@ -56,10 +55,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             uid: user.uid,
             email: user.email,
             role: role,
-            campaignId: undefined, // Novo usuário não está em nenhuma campanha inicialmente
           };
           await setDoc(doc(db, 'users', user.uid), newUser);
-          setCurrentUser({ ...user, role: role as 'jogador' | 'gm', campaignId: newUser.campaignId });
+          setCurrentUser({ ...user, role: role as 'jogador' | 'gm' });
         }
       } else {
         setCurrentUser(null);
