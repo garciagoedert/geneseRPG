@@ -6,7 +6,7 @@ interface InteractiveMapGeneratorProps {
   onMapGenerated: (mapDataUrl: string) => void;
 }
 
-// --- Tipos e Constantes do "Estúdio Titã" ---
+// --- Tipos e Constantes ---
 const TILE_SIZE = 40;
 
 interface MapTile {
@@ -31,9 +31,7 @@ const PALETTES: { [key: string]: { terrains: string[], objects: string[] } } = {
     mansao: { terrains: ['woodFloor', 'carpetFloor'], objects: ['table', 'bed', 'chair', 'bookshelf', 'pillar'] },
     cripta: { terrains: ['stoneFloor', 'crackedStoneFloor'], objects: ['sarcophagus', 'pillar', 'bones', 'chest'] },
     taverna: { terrains: ['woodFloor', 'stoneFloor'], objects: ['table', 'chair', 'bar'] },
-    masmorra: { terrains: ['stoneFloor', 'crackedStoneFloor', 'water'], objects: ['pillar', 'chest', 'bones', 'grate'] },
-    vila: { terrains: ['grass', 'dirt'], objects: ['house', 'tree', 'bush', 'well'] },
-    cidade: { terrains: ['stoneFloor', 'dirt'], objects: ['house', 'shop', 'fountain', 'pillar'] },
+    masmorra: { terrains: ['stoneFloor', 'crackedStoneFloor', 'water'], objects: ['pillar', 'chest', 'bones', 'grate'] }
 };
 
 const objectBaseSizes: { [key: string]: { w: number, h: number } } = {
@@ -41,8 +39,7 @@ const objectBaseSizes: { [key: string]: { w: number, h: number } } = {
     sarcophagus:{w:TILE_SIZE, h:TILE_SIZE*2}, chair:{w:TILE_SIZE*0.7, h:TILE_SIZE*0.7}, bookshelf:{w:TILE_SIZE*2, h:TILE_SIZE*0.6},
     bar:{w:TILE_SIZE*3, h:TILE_SIZE}, rock:{w:TILE_SIZE, h:TILE_SIZE}, pillar:{w:TILE_SIZE*0.8, h:TILE_SIZE*0.8},
     wall:{w:TILE_SIZE, h:TILE_SIZE}, bush:{w:TILE_SIZE, h:TILE_SIZE}, bones:{w:TILE_SIZE, h:TILE_SIZE},
-    chest:{w:TILE_SIZE*0.9, h:TILE_SIZE*0.7}, grate:{w:TILE_SIZE, h:TILE_SIZE},
-    house: {w:TILE_SIZE*3, h:TILE_SIZE*3}, shop: {w:TILE_SIZE*4, h:TILE_SIZE*3}, well: {w:TILE_SIZE, h:TILE_SIZE}, fountain: {w:TILE_SIZE*2, h:TILE_SIZE*2},
+    chest:{w:TILE_SIZE*0.9, h:TILE_SIZE*0.7}, grate:{w:TILE_SIZE, h:TILE_SIZE}
 };
 
 // --- Classe do Gerador de Mapas (Lógica do Estúdio Titã) ---
@@ -106,7 +103,7 @@ class MapGenerator {
         this.mapData = { tiles: [], objects: [] };
         const generator = this.generators[config.location as keyof typeof this.generators];
         if (generator) {
-            generator.bind(this)(config, config.mapWidth, config.mapHeight);
+            generator(config, config.mapWidth, config.mapHeight);
         }
         this.draw();
     }
@@ -122,57 +119,11 @@ class MapGenerator {
                 this.mapData.objects.push({ type: objType, x: x*TILE_SIZE, y: y*TILE_SIZE, w, h, rot: 0, shadow: true });
             }
         },
-        vila: (cfg: any, c: number, r: number) => this.createSettlement(cfg, c, r, 'vila'),
-        cidade: (cfg: any, c: number, r: number) => this.createSettlement(cfg, c, r, 'cidade'),
         mansao: (cfg: any, c: number, r: number) => this.createInterior(cfg, c, r, 'woodFloor', PALETTES.mansao.objects),
         cripta: (cfg: any, c: number, r: number) => this.createInterior(cfg, c, r, 'stoneFloor', PALETTES.cripta.objects),
         taverna: (cfg: any, c: number, r: number) => this.createInterior(cfg, c, r, 'woodFloor', PALETTES.taverna.objects),
         masmorra: (cfg: any, c: number, r: number) => this.createInterior(cfg, c, r, 'stoneFloor', PALETTES.masmorra.objects),
     };
-
-    private createSettlement(cfg: any, cols: number, rows: number, type: 'vila' | 'cidade') {
-        const groundTexture = type === 'cidade' ? 'stoneFloor' : 'grass';
-        for (let y = 0; y < rows; y++) { for (let x = 0; x < cols; x++) { this.mapData.tiles.push({ x, y, texture: groundTexture }); } }
-
-        const roadCoords = new Set<string>();
-        const mainRoadY = Math.floor(rows / 2) + this.rand(-1, 1);
-        for (let x = 0; x < cols; x++) {
-            const tileIndex = mainRoadY * cols + x;
-            if (this.mapData.tiles[tileIndex]) this.mapData.tiles[tileIndex].texture = 'dirt';
-            roadCoords.add(`${x},${mainRoadY}`);
-        }
-
-        const numVerticalRoads = type === 'cidade' ? this.rand(2, 4) : this.rand(1, 2);
-        for (let i = 0; i < numVerticalRoads; i++) {
-            const roadX = Math.floor((i + 1) * cols / (numVerticalRoads + 1)) + this.rand(-2, 2);
-            for (let y = 0; y < rows; y++) {
-                const tileIndex = y * cols + roadX;
-                if (this.mapData.tiles[tileIndex]) this.mapData.tiles[tileIndex].texture = 'dirt';
-                roadCoords.add(`${roadX},${y}`);
-            }
-        }
-
-        const buildingTypes = PALETTES[type as keyof typeof PALETTES].objects.filter(o => o !== 'tree' && o !== 'bush');
-        const buildingAttempts = type === 'cidade' ? 200 : 100;
-        for (let i = 0; i < buildingAttempts; i++) {
-            const x = this.rand(1, cols - 5);
-            const y = this.rand(1, rows - 5);
-            
-            let isNearRoad = false;
-            for (let roadY = y - 1; roadY <= y + 4; roadY++) {
-                for (let roadX = x - 1; roadX <= x + 4; roadX++) {
-                    if (roadCoords.has(`${roadX},${roadY}`)) { isNearRoad = true; break; }
-                }
-                if(isNearRoad) break;
-            }
-
-            if (isNearRoad) {
-                const objType = this.choice(buildingTypes);
-                const { w, h } = this.getObjectDimensions({ type: objType, rot: 0 });
-                this.mapData.objects.push({ type: objType, x: x * TILE_SIZE, y: y * TILE_SIZE, w, h, rot: 0, shadow: true });
-            }
-        }
-    }
 
     private createInterior(cfg: any, cols: number, rows: number, floorTexture: string, objectTypes: string[]) {
         for (let y = 0; y < rows; y++) { for (let x = 0; x < cols; x++) { this.mapData.tiles.push({ x, y, texture: 'stoneWall' }); } }
@@ -291,28 +242,6 @@ class MapGenerator {
             c.fillStyle = '#111';
             for(let i=1; i<4; i++){ c.fillRect(o.x+o.w*(i/4)-2, o.y, 4, o.h); c.fillRect(o.x, o.y+o.h*(i/4)-2, o.w, 4);}
         },
-        house: (c, o) => {
-            const { w, h } = this.getObjectDimensions(o);
-            if(o.shadowPass){ c.fillRect(o.x,o.y,w,h); return; }
-            c.fillStyle = '#a05a2c'; c.fillRect(o.x, o.y, w, h);
-            c.fillStyle = '#8B4513'; c.fillRect(o.x + 5, o.y + 5, w - 10, h - 10);
-        },
-        shop: (c, o) => {
-            const { w, h } = this.getObjectDimensions(o);
-            if(o.shadowPass){ c.fillRect(o.x,o.y,w,h); return; }
-            c.fillStyle = '#4a4a52'; c.fillRect(o.x, o.y, w, h);
-            c.fillStyle = '#6a6a72'; c.fillRect(o.x + 5, o.y + 5, w - 10, h - 10);
-        },
-        well: (c, o) => {
-            if(o.shadowPass){ c.beginPath(); c.arc(o.x + o.w/2, o.y + o.h/2, o.w/2, 0, Math.PI*2); c.fill(); return; }
-            c.fillStyle = '#6a6a72'; c.beginPath(); c.arc(o.x + o.w/2, o.y + o.h/2, o.w/2, 0, Math.PI*2); c.fill();
-            c.fillStyle = '#1a1a1e'; c.beginPath(); c.arc(o.x + o.w/2, o.y + o.h/2, o.w/3, 0, Math.PI*2); c.fill();
-        },
-        fountain: (c, o) => {
-            if(o.shadowPass){ c.fillRect(o.x,o.y,o.w,o.h); return; }
-            c.fillStyle = '#8a8a92'; c.fillRect(o.x, o.y, o.w, o.h);
-            c.fillStyle = '#304080'; c.fillRect(o.x + o.w*0.1, o.y + o.h*0.1, o.w*0.8, o.h*0.8);
-        },
     };
 }
 
@@ -355,8 +284,6 @@ const InteractiveMapGenerator: React.FC<InteractiveMapGeneratorProps> = ({ onClo
             <div className="control-card">
               <label>Local do Mapa</label>
               <select className="select-style" value={location} onChange={e => setLocation(e.target.value)}>
-                <option value="vila">Vila</option>
-                <option value="cidade">Cidade</option>
                 <option value="floresta">Floresta Assombrada</option>
                 <option value="mansao">Salão da Mansão</option>
                 <option value="cripta">Cripta Ancestral</option>
