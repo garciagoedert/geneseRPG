@@ -34,12 +34,15 @@ interface MapData {
   id: string;
   name: string;
   imageUrl?: string;
+  description?: string;
 }
 
 interface CreatureData {
   id: string;
   name: string;
   imageUrl?: string;
+  description?: string;
+  stats?: any;
 }
 
 interface ItemData {
@@ -104,7 +107,8 @@ const MesaPage: React.FC = () => {
         setAllMaps(mapsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MapData)));
 
         const bestiarySnapshot = await getDocs(collection(db, "bestiary"));
-        setBestiary(bestiarySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CreatureData)));
+        const bestiaryList = bestiarySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CreatureData));
+        setBestiary(bestiaryList);
 
         const itemsSnapshot = await getDocs(collection(db, "items"));
         setAllItems(itemsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ItemData)));
@@ -127,7 +131,13 @@ const MesaPage: React.FC = () => {
   };
 
   const handleAddCreatureToCombat = async (creature: CreatureData) => {
-    const newCombatant = { id: `${creature.id}_${Date.now()}`, name: creature.name, initiative: 0, isActive: combatants.length === 0, type: 'creature', imageUrl: creature.imageUrl };
+    const newCombatant = { 
+      ...creature, 
+      id: `${creature.id}_${Date.now()}`, 
+      initiative: 0, 
+      isActive: combatants.length === 0, 
+      type: 'creature' 
+    };
     await updateDoc(mesaStateRef, { combatants: arrayUnion(newCombatant) });
     setIsModalOpen(false);
   };
@@ -158,10 +168,20 @@ const MesaPage: React.FC = () => {
   };
 
   const handleRemoveItemFromInventory = async (itemToRemove: { id: string, name: string }) => {
-    if (window.confirm(`Tem certeza que deseja remover "${itemToRemove.name}" do inventário?`)) {
+    const removeItem = async () => {
       const updatedInventory = inventory.filter(item => item.id !== itemToRemove.id);
       await updateDoc(mesaStateRef, { partyInventory: updatedInventory });
-    }
+      setIsModalOpen(false);
+    };
+
+    openModal(
+      `Remover ${itemToRemove.name}`,
+      <ConfirmationPrompt
+        message={`Tem certeza que deseja remover "${itemToRemove.name}" do inventário do grupo?`}
+        onConfirm={removeItem}
+        onCancel={() => setIsModalOpen(false)}
+      />
+    );
   };
 
   const handleSelectMap = async (mapId: string) => {
@@ -179,8 +199,21 @@ const MesaPage: React.FC = () => {
   const openSelectMapModal = () => openModal("Selecionar Mapa Ativo", <SelectionList items={allMaps} onSelect={handleSelectMap} />);
   const openAddCharacterModal = () => openModal("Adicionar Personagem ao Combate", <SelectionList items={characters} onSelect={handleAddCharacterToCombat} />);
   const openAddCreatureModal = () => openModal("Adicionar Criatura ao Combate", <SelectionList items={bestiary} onSelect={handleAddCreatureToCombat} />);
-  const openEditCombatantModal = (c: any) => openModal(`Editar ${c.name}`, <CombatantForm combatant={c} onUpdate={handleUpdateCombatant} onRemove={handleRemoveCombatant} />);
+  const openEditCombatantModal = (c: any) => {
+    const details = c.type === 'player' 
+      ? <CharacterDetails character={c} /> 
+      : <CreatureDetails creature={c} />;
+      
+    openModal(
+      `Editar ${c.name}`, 
+      <>
+        {details}
+        <CombatantForm combatant={c} onUpdate={handleUpdateCombatant} onRemove={handleRemoveCombatant} />
+      </>
+    );
+  };
   const openCharacterDetailsModal = (c: CharacterData) => openModal(``, <CharacterDetails character={c} />);
+  const openMapDetailsModal = (m: MapData) => openModal(m.name, <MapDetails map={m} />);
 
   if (loading) return <div>Carregando dados da mesa...</div>;
 
@@ -188,7 +221,7 @@ const MesaPage: React.FC = () => {
     <div className="mesa-container">
       <div className="mesa-dashboard">
         <CharacterWidget characters={characters} onCharacterClick={openCharacterDetailsModal} />
-        <MapWidget map={activeMap} />
+        <MapWidget map={activeMap} onMapClick={openMapDetailsModal} />
         <CombatTrackerWidget combatants={combatants} onCombatantClick={openEditCombatantModal} />
         <InventoryWidget items={inventory} onItemClick={handleRemoveItemFromInventory} />
       </div>
@@ -208,7 +241,7 @@ const MesaPage: React.FC = () => {
 
 const SelectionList = ({ items, onSelect }: { items: { id: string, name: string }[], onSelect: (item: any) => void }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const filteredItems = items.filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredItems = items.filter(item => item.name && item.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div>
@@ -231,16 +264,32 @@ const CombatantForm = ({ combatant, onUpdate, onRemove }: { combatant: any, onUp
   const [initiative, setInitiative] = useState(combatant.initiative || '');
 
   return (
-    <div>
-      <div className="form-group"><label>HP Atual</label><input type="number" value={hp} onChange={e => setHp(e.target.value)} /></div>
-      <div className="form-group"><label>Iniciativa</label><input type="number" value={initiative} onChange={e => setInitiative(e.target.value)} /></div>
+    <div className="combatant-form-container">
+      <div className="form-group">
+        <label>HP Atual</label>
+        <input type="number" value={hp} onChange={e => setHp(e.target.value)} />
+      </div>
+      <div className="form-group">
+        <label>Iniciativa</label>
+        <input type="number" value={initiative} onChange={e => setInitiative(e.target.value)} />
+      </div>
       <div className="modal-actions">
-        <button className="secondary" onClick={() => onRemove(combatant.id)}>Remover</button>
-        <button onClick={() => onUpdate(combatant.id, { currentHp: parseInt(hp), initiative: parseInt(initiative) })}>Salvar</button>
+        <button className="secondary" onClick={() => onRemove(combatant.id)}>Remover do Combate</button>
+        <button onClick={() => onUpdate(combatant.id, { currentHp: parseInt(hp), initiative: parseInt(initiative) })}>Salvar Alterações</button>
       </div>
     </div>
   );
 };
+
+const ConfirmationPrompt = ({ message, onConfirm, onCancel }: { message: string, onConfirm: () => void, onCancel: () => void }) => (
+  <div>
+    <p>{message}</p>
+    <div className="modal-actions">
+      <button className="secondary" onClick={onCancel}>Cancelar</button>
+      <button onClick={onConfirm}>Confirmar</button>
+    </div>
+  </div>
+);
 
 const CharacterDetails = ({ character }: { character: CharacterData }) => {
   return (
@@ -270,10 +319,63 @@ const CharacterDetails = ({ character }: { character: CharacterData }) => {
           ))}
         </div>
       ) : (
-        <p>Atributos não cadastrados para este personagem.</p>
+        <p style={{ padding: '2rem' }}>Atributos não cadastrados para este personagem.</p>
       )}
     </div>
   );
 };
+
+const CreatureDetails = ({ creature }: { creature: CreatureData }) => (
+  <div className="character-details-container">
+    {creature.imageUrl && (
+      <div className="character-details-header">
+        <img 
+          src={convertGoogleDriveLink(creature.imageUrl)} 
+          alt={creature.name} 
+          className="character-details-avatar"
+        />
+      </div>
+    )}
+    <div style={{ padding: '2rem' }}>
+      {creature.description && (
+        <div className="form-group">
+          <h4>Descrição</h4>
+          <p>{creature.description}</p>
+        </div>
+      )}
+      {creature.stats && (
+        <div className="form-group">
+          <h4>Estatísticas</h4>
+          <pre>{JSON.stringify(creature.stats, null, 2)}</pre>
+        </div>
+      )}
+      {!creature.description && !creature.stats && (
+        <p>Nenhuma descrição ou estatística cadastrada para esta criatura.</p>
+      )}
+    </div>
+  </div>
+);
+
+const MapDetails = ({ map }: { map: MapData }) => (
+  <div className="map-details-container">
+    {map.imageUrl && (
+      <img 
+        src={convertGoogleDriveLink(map.imageUrl)} 
+        alt={map.name}
+        className="map-details-image"
+      />
+    )}
+    <div className="map-details-content">
+      {map.description ? (
+        <>
+          <h3>História e Detalhes</h3>
+          <p>{map.description}</p>
+        </>
+      ) : (
+        <p>Nenhuma descrição disponível para este mapa.</p>
+      )}
+    </div>
+  </div>
+);
 
 export default MesaPage;

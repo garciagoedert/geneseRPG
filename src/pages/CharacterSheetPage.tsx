@@ -127,6 +127,14 @@ const CharacterSheetPage: React.FC = () => {
     };
   };
 
+  // Função para renderizar conteúdo de forma segura, evitando erros com objetos
+  const renderSafe = (content: any) => {
+    if (typeof content === 'object' && content !== null) {
+      return JSON.stringify(content); // Ou renderize uma string vazia, ou um aviso
+    }
+    return content;
+  };
+
   return (
     <div className="details-container">
       <header className="details-hero">
@@ -139,8 +147,8 @@ const CharacterSheetPage: React.FC = () => {
         )}
         <div className="details-hero-content">
           <div>
-            <h1>{sheetData.name}</h1>
-            <p style={{ margin: 0, color: '#ccc' }}>{sheetData.class} - Nível {sheetData.level}</p>
+            <h1>{renderSafe(sheetData.name)}</h1>
+            <p style={{ margin: 0, color: '#ccc' }}>{renderSafe(sheetData.class)} - Nível {renderSafe(sheetData.level)}</p>
           </div>
           {(currentUser?.uid === sheetData.ownerId || currentUser?.role === 'gm') && (
             <Link to={`/edit-character/${sheetId}`} className="details-edit-button">
@@ -178,7 +186,7 @@ const CharacterSheetPage: React.FC = () => {
             >
               <div className="resource-content">
                 <span className="resource-icon">❤️</span>
-                <span className="resource-value">{sheetData.hp}</span>
+                <span className="resource-value">{renderSafe(sheetData.hp)}</span>
                 <span className="resource-label">HP</span>
               </div>
             </div>
@@ -188,7 +196,7 @@ const CharacterSheetPage: React.FC = () => {
             >
               <div className="resource-content">
                 <span className="resource-icon">💧</span>
-                <span className="resource-value">{sheetData.mp}</span>
+                <span className="resource-value">{renderSafe(sheetData.mp)}</span>
                 <span className="resource-label">MP</span>
               </div>
             </div>
@@ -198,7 +206,7 @@ const CharacterSheetPage: React.FC = () => {
             >
               <div className="resource-content">
                 <span className="resource-icon">💰</span>
-                <span className="resource-value">{sheetData.gold}</span>
+                <span className="resource-value">{renderSafe(sheetData.gold)}</span>
                 <span className="resource-label">Ouro</span>
               </div>
             </div>
@@ -210,25 +218,25 @@ const CharacterSheetPage: React.FC = () => {
           {sheetData.history && (
             <>
               <h3>História</h3>
-              <p>{sheetData.history}</p>
+              <p>{renderSafe(sheetData.history)}</p>
             </>
           )}
           {sheetData.appearance && (
             <>
               <h3>Aparência</h3>
-              <p>{sheetData.appearance}</p>
+              <p>{renderSafe(sheetData.appearance)}</p>
             </>
           )}
           {sheetData.personality && (
             <>
               <h3>Personalidade</h3>
-              <p>{sheetData.personality}</p>
+              <p>{renderSafe(sheetData.personality)}</p>
             </>
           )}
           {sheetData.notes && (
             <>
               <h3>Anotações</h3>
-              <p>{sheetData.notes}</p>
+              <p>{renderSafe(sheetData.notes)}</p>
             </>
           )}
         </div>

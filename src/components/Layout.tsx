@@ -48,7 +48,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
           <nav className="sidebar-nav">
             <NavLink to="/dashboard" onClick={toggleSidebar}><FaTh /> Mesa</NavLink>
-            <NavLink to="/create-character" onClick={toggleSidebar}><FaUserPlus /> Criar Ficha</NavLink>
+            <NavLink to="/character-list" onClick={toggleSidebar}><FaUserPlus /> Minhas Fichas</NavLink>
             <NavLink to="/maps" onClick={toggleSidebar}><FaMap /> Mapa</NavLink>
             <NavLink to="/bestiary" onClick={toggleSidebar}><FaBook /> Bestiário</NavLink>
             <NavLink to="/spells" onClick={toggleSidebar}><FaMagic /> Magias e Habilidades</NavLink>

@@ -10,9 +10,10 @@ interface MapData {
 
 interface MapWidgetProps {
   map: MapData | null;
+  onMapClick: (map: MapData) => void;
 }
 
-const MapWidget: React.FC<MapWidgetProps> = ({ map }) => {
+const MapWidget: React.FC<MapWidgetProps> = ({ map, onMapClick }) => {
   return (
     <div className="widget map-widget">
       <div className="widget-header">
@@ -25,6 +26,7 @@ const MapWidget: React.FC<MapWidgetProps> = ({ map }) => {
             style={{
               backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.2)), url(${convertGoogleDriveLink(map.imageUrl)})`
             }}
+            onClick={() => onMapClick(map)}
           >
             <div className="map-card-info">
               <h3>{map.name}</h3>

@@ -3,6 +3,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import MesaPage from './pages/MesaPage';
 import CreateCharacterPage from './pages/CreateCharacterPage';
+import CharacterListPage from './pages/CharacterListPage';
 import MapPage from './pages/MapPage';
 import MapsListPage from './pages/MapsListPage';
 import MapDetailsPage from './pages/MapDetailsPage';
@@ -46,6 +47,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <MesaPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/character-list"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <CharacterListPage />
               </Layout>
             </ProtectedRoute>
           }

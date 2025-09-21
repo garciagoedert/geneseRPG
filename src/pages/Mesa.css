@@ -383,3 +383,21 @@
   padding-left: 1.5rem;
   margin: 0;
 }
+
+.delete-button-card {
+  background-color: #9b2c2c; /* Um vermelho mais escuro */
+  color: var(--text-color);
+  border: none;
+  padding: 0.8rem;
+  width: 100%;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  transition: background-color 0.2s ease-in-out;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.delete-button-card:hover {
+  background-color: #c53030; /* Vermelho mais claro no hover */
+}
