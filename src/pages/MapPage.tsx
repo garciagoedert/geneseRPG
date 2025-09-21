@@ -9,7 +9,6 @@ import './MapPage.css';
 import CreatureSelector from '../components/CreatureSelector';
 import PlayerSelector from '../components/PlayerSelector';
 import AssetSelector from '../components/AssetSelector';
-import InteractiveMapGenerator from '../components/InteractiveMapGenerator';
 
 interface Asset {
   name: string;
@@ -71,8 +70,6 @@ const MapPage: React.FC = () => {
   const [isCreatureSelectorOpen, setCreatureSelectorOpen] = useState(false);
   const [isPlayerSelectorOpen, setPlayerSelectorOpen] = useState(false);
   const [isAssetSelectorOpen, setAssetSelectorOpen] = useState(false);
-  const [isGeneratorOpen, setGeneratorOpen] = useState(false);
-  const [mapBackground, setMapBackground] = useState<string | null>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -227,38 +224,36 @@ const MapPage: React.FC = () => {
         oldLayer.destroy();
       }
 
-      const gridLayer = new Konva.Layer({ name: 'grid-layer' });
+      const layer = new Konva.Layer({ name: 'grid-layer' });
+
+      // Cria um canvas para o padrão de pontos
       const patternCanvas = document.createElement('canvas');
       patternCanvas.width = GRID_SIZE;
       patternCanvas.height = GRID_SIZE;
       const patternContext = patternCanvas.getContext('2d');
+
       if (patternContext) {
-        patternContext.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        patternContext.lineWidth = 0.5;
+        patternContext.fillStyle = '#4f5b6a';
         patternContext.beginPath();
-        patternContext.moveTo(GRID_SIZE, 0);
-        patternContext.lineTo(GRID_SIZE, GRID_SIZE);
-        patternContext.lineTo(0, GRID_SIZE);
-        patternContext.stroke();
+        patternContext.arc(DOT_RADIUS, DOT_RADIUS, DOT_RADIUS, 0, 2 * Math.PI);
+        patternContext.fill();
       }
+
       const largeDim = 5000;
-      gridLayer.add(new Konva.Rect({
-        x: -largeDim, y: -largeDim, width: largeDim * 2, height: largeDim * 2,
+      layer.add(new Konva.Rect({
+        x: -largeDim,
+        y: -largeDim,
+        width: largeDim * 2,
+        height: largeDim * 2,
         fill: '#1a1f2c',
         fillPatternImage: patternCanvas as any,
         fillPatternRepeat: 'repeat',
       }));
-      stage.add(gridLayer);
-      gridLayer.moveToBottom();
-      
-      // Esconde a camada de grid se houver um fundo
-      gridLayer.visible(!mapBackground);
-    }
-  }, [dimensions, mapBackground]);
 
-  const handleMapGenerated = (mapDataUrl: string) => {
-    setMapBackground(mapDataUrl);
-  };
+      stage.add(layer);
+      layer.moveToBottom();
+    }
+  }, [dimensions]);
 
 
   const addToken = () => {
@@ -390,9 +385,6 @@ const MapPage: React.FC = () => {
         onTouchStart={checkDeselect}
       >
         <Layer>
-          {mapBackground && <BackgroundImage src={mapBackground} />}
-        </Layer>
-        <Layer>
           {/* Linhas Desenhadas */}
           {lines.map((line) => (
             <Line
@@ -515,17 +507,7 @@ const MapPage: React.FC = () => {
           Deletar
         </button>
         <button onClick={clearMap}>Limpar Mapa</button>
-        <button onClick={() => setGeneratorOpen(true)}>Gerar Mapa</button>
-        {mapBackground && (
-          <button onClick={() => setMapBackground(null)}>Apagar Fundo</button>
-        )}
       </div>
-      {isGeneratorOpen && (
-        <InteractiveMapGenerator
-          onClose={() => setGeneratorOpen(false)}
-          onMapGenerated={handleMapGenerated}
-        />
-      )}
       {isCreatureSelectorOpen && (
         <CreatureSelector
           onSelectCreature={handleSelectCreature}
@@ -546,11 +528,6 @@ const MapPage: React.FC = () => {
       )}
     </div>
   );
-};
-
-const BackgroundImage: React.FC<{ src: string }> = ({ src }) => {
-  const [image] = useImage(src);
-  return <Image image={image} x={0} y={0} />;
 };
 
 export default MapPage;
