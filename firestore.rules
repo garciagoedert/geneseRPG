@@ -2,16 +2,18 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Usuários podem criar seu próprio documento e ler/atualizar seus próprios dados.
+    // Usuários podem criar seu próprio documento, ler/atualizar seus próprios dados e listar outros usuários.
     match /users/{userId} {
       allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
       allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow list: if request.auth != null;
     }
 
-    // GMs podem ler/escrever qualquer ficha. Jogadores só podem as suas.
+    // GMs podem escrever qualquer ficha. Jogadores podem ler todas, mas só editar as suas.
     match /characterSheets/{sheetId} {
       allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
-      allow read, update, delete: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'gm' || resource.data.ownerId == request.auth.uid);
+      allow read: if request.auth != null;
+      allow update, delete: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'gm' || resource.data.ownerId == request.auth.uid);
     }
 
     // Todos podem ler, mas apenas GMs podem escrever.
