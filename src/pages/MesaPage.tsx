@@ -3,7 +3,6 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebaseConfig';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
-import DiceRoller from '../components/DiceRoller';
 import { convertGoogleDriveLink } from '../utils/imageUtils';
 import './Mesa.css';
 
@@ -144,7 +143,7 @@ const MesaPage: React.FC = () => {
         )}
       </div>
 
-      <DiceRoller />
+      
     </div>
   );
 };

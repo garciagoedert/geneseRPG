@@ -1,9 +1,10 @@
 import React, { useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
-  FaTh, FaUserPlus, FaMap, FaBook, FaMagic, FaBox, FaFileAlt, FaChalkboardTeacher
+  FaTh, FaUserPlus, FaMap, FaBook, FaMagic, FaBox, FaFileAlt, FaChalkboardTeacher, FaDiceD20
 } from 'react-icons/fa';
 import { signOut } from 'firebase/auth';
+import DiceRoller from './DiceRoller';
 import { auth } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import './Layout.css';
@@ -15,6 +16,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { currentUser } = useAuth();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isDiceRollerOpen, setDiceRollerOpen] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
@@ -65,6 +67,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className="main-content">
         {children}
       </main>
+
+      <button className="fab" onClick={() => setDiceRollerOpen(true)}>
+        <FaDiceD20 />
+      </button>
+
+      {isDiceRollerOpen && (
+        <div className="modal-overlay" onClick={() => setDiceRollerOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <DiceRoller />
+            <button className="close-button" onClick={() => setDiceRollerOpen(false)}>Fechar</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
