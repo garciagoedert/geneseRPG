@@ -1,9 +1,6 @@
 import React from 'react';
 import { Image } from 'react-konva';
 import useImage from 'use-image';
-import Konva from 'konva';
-
-const GRID_SIZE = 32;
 
 interface TileImageProps {
   tile: {
