@@ -4,11 +4,10 @@ import './MesaModal.css';
 interface MesaModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
   children: React.ReactNode;
 }
 
-const MesaModal: React.FC<MesaModalProps> = ({ isOpen, onClose, title, children }) => {
+const MesaModal: React.FC<MesaModalProps> = ({ isOpen, onClose, children }) => {
   if (!isOpen) {
     return null;
   }

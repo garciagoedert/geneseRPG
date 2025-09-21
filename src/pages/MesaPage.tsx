@@ -63,7 +63,6 @@ const MesaPage: React.FC = () => {
   const [turn, setTurn] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalTitle, setModalTitle] = useState('');
   const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
   useEffect(() => {
@@ -80,7 +79,7 @@ const MesaPage: React.FC = () => {
         setInventory(sessionData.partyInventory || []);
         setTurn(sessionData.turn || 0);
 
-        if (sessionData.activeMapId) {
+        if (sessionData.activeMapId && typeof sessionData.activeMapId === 'string') {
           const mapDocRef = doc(db, 'maps', sessionData.activeMapId);
           const mapDocSnap = await getDoc(mapDocRef);
           if (mapDocSnap.exists()) {
@@ -175,7 +174,6 @@ const MesaPage: React.FC = () => {
     };
 
     openModal(
-      `Remover ${itemToRemove.name}`,
       <ConfirmationPrompt
         message={`Tem certeza que deseja remover "${itemToRemove.name}" do inventário do grupo?`}
         onConfirm={removeItem}
@@ -184,36 +182,34 @@ const MesaPage: React.FC = () => {
     );
   };
 
-  const handleSelectMap = async (mapId: string) => {
-    await updateDoc(mesaStateRef, { activeMapId: mapId });
+  const handleSelectMap = async (map: MapData) => {
+    await updateDoc(mesaStateRef, { activeMapId: map.id });
     setIsModalOpen(false);
   };
 
-  const openModal = (title: string, content: React.ReactNode) => {
-    setModalTitle(title);
+  const openModal = (content: React.ReactNode) => {
     setModalContent(content);
     setIsModalOpen(true);
   };
 
-  const openAddItemModal = () => openModal("Adicionar Item ao Inventário", <SelectionList items={allItems} onSelect={handleAddItemToInventory} />);
-  const openSelectMapModal = () => openModal("Selecionar Mapa Ativo", <SelectionList items={allMaps} onSelect={handleSelectMap} />);
-  const openAddCharacterModal = () => openModal("Adicionar Personagem ao Combate", <SelectionList items={characters} onSelect={handleAddCharacterToCombat} />);
-  const openAddCreatureModal = () => openModal("Adicionar Criatura ao Combate", <SelectionList items={bestiary} onSelect={handleAddCreatureToCombat} />);
+  const openAddItemModal = () => openModal(<SelectionList items={allItems} onSelect={handleAddItemToInventory} />);
+  const openSelectMapModal = () => openModal(<SelectionList items={allMaps} onSelect={handleSelectMap} />);
+  const openAddCharacterModal = () => openModal(<SelectionList items={characters} onSelect={handleAddCharacterToCombat} />);
+  const openAddCreatureModal = () => openModal(<SelectionList items={bestiary} onSelect={handleAddCreatureToCombat} />);
   const openEditCombatantModal = (c: any) => {
     const details = c.type === 'player' 
       ? <CharacterDetails character={c} /> 
       : <CreatureDetails creature={c} />;
       
     openModal(
-      `Editar ${c.name}`, 
       <>
         {details}
         <CombatantForm combatant={c} onUpdate={handleUpdateCombatant} onRemove={handleRemoveCombatant} />
       </>
     );
   };
-  const openCharacterDetailsModal = (c: CharacterData) => openModal(``, <CharacterDetails character={c} />);
-  const openMapDetailsModal = (m: MapData) => openModal(m.name, <MapDetails map={m} />);
+  const openCharacterDetailsModal = (c: CharacterData) => openModal(<CharacterDetails character={c} />);
+  const openMapDetailsModal = (m: MapData) => openModal(<MapDetails map={m} />);
 
   if (loading) return <div>Carregando dados da mesa...</div>;
 
@@ -232,7 +228,7 @@ const MesaPage: React.FC = () => {
         onAddItem={openAddItemModal}
         onSelectMap={openSelectMapModal}
       />
-      <MesaModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={modalTitle}>
+      <MesaModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         {modalContent}
       </MesaModal>
     </div>
