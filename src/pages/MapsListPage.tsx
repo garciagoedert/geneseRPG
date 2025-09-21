@@ -17,38 +17,23 @@ interface MapData {
   visibleToPlayers?: boolean;
 }
 
-interface UserData {
-  role: 'jogador' | 'gm';
-}
-
 const MapsListPage: React.FC = () => {
   const { currentUser } = useAuth();
   const [maps, setMaps] = useState<MapData[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMap, setSelectedMap] = useState<MapData | null>(null);
-  const [userData, setUserData] = useState<UserData | null>(null);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (currentUser) {
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          setUserData(userDocSnap.data() as UserData);
-        }
-      }
-    };
-    fetchUserData();
-  }, [currentUser]);
 
   useEffect(() => {
     const fetchMaps = async () => {
-      if (!currentUser || !userData) return;
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
 
       try {
         let mapsQuery;
-        if (userData.role === 'gm') {
+        if (currentUser.role === 'gm') {
           // GMs veem todos os mapas que eles criaram
           mapsQuery = query(collection(db, "maps"), where("ownerId", "==", currentUser.uid));
         } else {
@@ -66,10 +51,8 @@ const MapsListPage: React.FC = () => {
       }
     };
 
-    if (userData) {
-      fetchMaps();
-    }
-  }, [currentUser, userData]);
+    fetchMaps();
+  }, [currentUser]);
 
   const handleCardClick = (map: MapData) => {
     setSelectedMap(map);
@@ -172,7 +155,7 @@ const MapsListPage: React.FC = () => {
     <div className="maps-list-container">
       <div className="mesa-header">
         <h1>Mapas da Campanha</h1>
-        {userData?.role === 'gm' && <button onClick={createNewMap}>Criar Novo Mapa</button>}
+        {currentUser?.role === 'gm' && <button onClick={createNewMap}>Criar Novo Mapa</button>}
       </div>
       {maps.length > 0 ? (
         <div className="character-list">
@@ -205,7 +188,7 @@ const MapsListPage: React.FC = () => {
           <Link to={`/map/${selectedMap.id}`} className="control-button">
             Abrir Mapa Interativo
           </Link>
-          {userData?.role === 'gm' && (
+          {currentUser?.role === 'gm' && (
             <>
               <button onClick={() => toggleMapVisibility(selectedMap)} className="control-button">
                 {selectedMap.visibleToPlayers ? 'Ocultar dos Players' : 'Tornar Visível'}

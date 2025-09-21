@@ -34,7 +34,7 @@ service cloud.firestore {
 
     // GMs podem ler todos os mapas. Jogadores podem ler mapas visíveis. Usuários podem manipular apenas os seus.
     match /maps/{mapId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'gm' || resource.data.visibleToPlayers == true);
       allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
       allow update, delete: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'gm' || resource.data.ownerId == request.auth.uid);
     }
