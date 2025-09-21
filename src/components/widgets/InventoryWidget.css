@@ -1,0 +1,41 @@
+.inventory-widget-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.inventory-widget-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #3a3a4a;
+}
+
+.inventory-widget-item:last-child {
+  border-bottom: none;
+}
+
+.item-name {
+  font-family: 'Roboto', sans-serif;
+}
+
+.item-quantity {
+  font-weight: bold;
+  background-color: var(--background-color);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.inventory-widget-button {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  cursor: pointer;
+  font-size: 0.9rem;
+}

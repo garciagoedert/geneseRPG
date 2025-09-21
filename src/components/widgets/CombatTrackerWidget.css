@@ -1,0 +1,82 @@
+.combat-tracker-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.combatant-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease-in-out;
+  border-bottom: 1px solid #3a3a4a;
+}
+
+.combatant-item:last-child {
+  border-bottom: none;
+}
+
+.combatant-item.active {
+  background-color: rgba(255, 215, 0, 0.1);
+  border-left: 4px solid var(--primary-color);
+}
+
+.combatant-initiative {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: var(--primary-color);
+  margin-right: 1rem;
+  width: 30px;
+  text-align: center;
+}
+
+.combatant-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
+  border: 2px solid #444;
+}
+
+.combatant-name {
+  font-weight: bold;
+}
+
+.combatant-details {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.combatant-hp {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-top: 0.25rem;
+}
+
+.combatant-item.player .combatant-name {
+  color: #aaffaa; /* Verde claro para jogadores */
+}
+
+.combatant-item.creature .combatant-name {
+  color: #ffaaaa; /* Vermelho claro para criaturas */
+}
+
+.combat-tracker-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.combat-tracker-button {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
