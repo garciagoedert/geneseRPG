@@ -21,10 +21,15 @@
   border-radius: 10px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
   display: flex;
-  gap: 8px;
   z-index: 10;
   border: 1px solid #555;
-  align-items: center; /* Alinha itens verticalmente */
+  align-items: stretch; /* Garante que os grupos preencham a altura */
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .map-toolbar button {

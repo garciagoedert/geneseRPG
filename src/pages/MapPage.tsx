@@ -9,40 +9,10 @@ import './MapPage.css';
 import CreatureSelector from '../components/CreatureSelector';
 import PlayerSelector from '../components/PlayerSelector';
 import AssetSelector from '../components/AssetSelector';
-import TileSelector from '../components/TileSelector';
-import TileImage from '../components/TileImage';
 import TokenEditModal from '../components/TokenEditModal';
+import AssetEditModal from '../components/AssetEditModal';
 import '../components/TokenEditModal.css';
 import Token from '../components/Token';
-
-// Representa um tile que foi colocado no mapa
-interface MapTile {
-  id: string;
-  x: number;
-  y: number;
-  src?: string;
-  crop?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-  color?: string;
-}
-
-// Representa os dados de um tile selecionado na paleta
-interface SelectedTile {
-  src?: string;
-  crop?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-  color?: string;
-  width?: number; // Adicionado para seleções maiores
-  height?: number; // Adicionado para seleções maiores
-}
 
 interface Asset {
   name: string;
@@ -65,16 +35,23 @@ interface Player {
 
 const GRID_SIZE = 32; // Alterado para corresponder ao TILE_SIZE
 
-type DrawingMode = 'select' | 'line' | 'tile' | 'free';
+type DrawingMode = 'select' | 'line' | 'free' | 'paint';
+
+interface PaintedCell {
+  x: number;
+  y: number;
+  color: string;
+}
 
 interface AssetTokenProps {
   asset: any;
   onSelect: () => void;
   isSelected: boolean;
   onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => void;
+  onDblClick: () => void;
 }
 
-const AssetToken: React.FC<AssetTokenProps> = ({ asset, onSelect, isSelected, onDragEnd }) => {
+const AssetToken: React.FC<AssetTokenProps> = ({ asset, onSelect, isSelected, onDragEnd, onDblClick }) => {
   const [image] = useImage(asset.src, 'anonymous');
   return (
     <Image
@@ -88,6 +65,7 @@ const AssetToken: React.FC<AssetTokenProps> = ({ asset, onSelect, isSelected, on
       onClick={onSelect}
       onTap={onSelect}
       onDragEnd={onDragEnd}
+      onDblClick={onDblClick}
       stroke={isSelected ? 'cyan' : undefined}
       strokeWidth={isSelected ? 3 : 0}
     />
@@ -98,23 +76,55 @@ const MapPage: React.FC = () => {
   const { mapId } = useParams<{ mapId: string }>();
   const [tokens, setTokens] = useState<any[]>([]);
   const [assets, setAssets] = useState<any[]>([]);
-  const [tiles, setTiles] = useState<MapTile[]>([]);
   const [lines, setLines] = useState<any[]>([]);
+  const [paintedCells, setPaintedCells] = useState<PaintedCell[]>([]);
   const [drawing, setDrawing] = useState(false);
   const [drawingMode, setDrawingMode] = useState<DrawingMode>('select');
   const [lineColor, setLineColor] = useState('#ffffff');
   const [selectedId, selectShape] = useState<string | null>(null);
-  const [selectedTile, setSelectedTile] = useState<SelectedTile | null>(null);
   const [backgroundColor, setBackgroundColor] = useState('#1a1f2c');
   const [isCreatureSelectorOpen, setCreatureSelectorOpen] = useState(false);
   const [isPlayerSelectorOpen, setPlayerSelectorOpen] = useState(false);
   const [isAssetSelectorOpen, setAssetSelectorOpen] = useState(false);
-  const [isTileSelectorOpen, setTileSelectorOpen] = useState(false);
   const [isTokenEditModalOpen, setTokenEditModalOpen] = useState(false);
+  const [isAssetEditModalOpen, setAssetEditModalOpen] = useState(false);
   const [editingToken, setEditingToken] = useState<any | null>(null);
+  const [editingAsset, setEditingAsset] = useState<any | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [historyStep, setHistoryStep] = useState(0);
   const stageRef = useRef<Konva.Stage>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  const saveStateToHistory = () => {
+    const currentState = { tokens, assets, lines, paintedCells };
+    const newHistory = history.slice(0, historyStep + 1);
+    newHistory.push(currentState);
+    setHistory(newHistory);
+    setHistoryStep(newHistory.length - 1);
+  };
+
+  const handleUndo = () => {
+    if (historyStep > 0) {
+      const prevState = history[historyStep - 1];
+      setTokens(prevState.tokens);
+      setAssets(prevState.assets);
+      setLines(prevState.lines);
+      setPaintedCells(prevState.paintedCells);
+      setHistoryStep(historyStep - 1);
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyStep < history.length - 1) {
+      const nextState = history[historyStep + 1];
+      setTokens(nextState.tokens);
+      setAssets(nextState.assets);
+      setLines(nextState.lines);
+      setPaintedCells(nextState.paintedCells);
+      setHistoryStep(historyStep + 1);
+    }
+  };
 
   const fetchMapData = async () => {
     if (!mapId) return;
@@ -127,7 +137,7 @@ const MapPage: React.FC = () => {
         setTokens(state.tokens || []);
         setAssets(state.assets || []);
         setLines(state.lines || []);
-        setTiles(state.tiles || []);
+        setPaintedCells(state.paintedCells || []);
         setBackgroundColor(state.backgroundColor || '#1a1f2c');
       }
     } else {
@@ -145,7 +155,7 @@ const MapPage: React.FC = () => {
     if (!mapId) return;
     const saveMapState = async () => {
       const mapRef = doc(db, 'maps', mapId);
-      const mapState = JSON.stringify({ tokens, assets, lines, tiles, backgroundColor });
+      const mapState = JSON.stringify({ tokens, assets, lines, paintedCells, backgroundColor });
       // Usamos setDoc com merge: true para não sobrescrever outros campos como nome e ownerId
       await setDoc(mapRef, { mapState }, { merge: true });
     };
@@ -158,7 +168,7 @@ const MapPage: React.FC = () => {
     return () => {
       clearTimeout(handler);
     };
-  }, [tokens, assets, lines, tiles, backgroundColor, mapId]);
+  }, [tokens, assets, lines, paintedCells, backgroundColor, mapId]);
 
 
   useEffect(() => {
@@ -185,11 +195,12 @@ const MapPage: React.FC = () => {
   };
 
   const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (drawingMode === 'tile' && selectedTile) {
-      placeTile(e);
+    if (drawingMode === 'paint') {
+      setDrawing(true);
+      paintCell(e);
       return;
     }
-  
+
     if (drawingMode !== 'line' && drawingMode !== 'free') return;
   
     setDrawing(true);
@@ -211,7 +222,14 @@ const MapPage: React.FC = () => {
   };
   
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (!drawing || (drawingMode !== 'line' && drawingMode !== 'free')) return;
+    if (!drawing) return;
+
+    if (drawingMode === 'paint') {
+      paintCell(e);
+      return;
+    }
+
+    if (drawingMode !== 'line' && drawingMode !== 'free') return;
   
     const stage = e.target.getStage();
     if (!stage) return;
@@ -236,6 +254,9 @@ const MapPage: React.FC = () => {
   };
 
   const handleMouseUp = () => {
+    if (drawing) {
+      saveStateToHistory();
+    }
     setDrawing(false);
   };
 
@@ -411,15 +432,7 @@ const MapPage: React.FC = () => {
     setAssetSelectorOpen(false);
   };
 
-  const handleSelectTile = (tile: SelectedTile) => {
-    setSelectedTile(tile);
-    setDrawingMode('tile'); // Entra no modo de tile automaticamente
-    setTileSelectorOpen(false);
-  };
-
-  const placeTile = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (!selectedTile) return;
-
+  const paintCell = (e: Konva.KonvaEventObject<MouseEvent>) => {
     const stage = e.target.getStage();
     if (!stage) return;
     const pos = stage.getPointerPosition();
@@ -428,28 +441,20 @@ const MapPage: React.FC = () => {
     const transform = stage.getAbsoluteTransform().copy().invert();
     const truePos = transform.point(pos);
 
-    // Snap to grid
-    const snappedX = Math.floor(truePos.x / GRID_SIZE) * GRID_SIZE;
-    const snappedY = Math.floor(truePos.y / GRID_SIZE) * GRID_SIZE;
+    const x = Math.floor(truePos.x / GRID_SIZE);
+    const y = Math.floor(truePos.y / GRID_SIZE);
 
-    const newTile: MapTile = {
-      x: snappedX,
-      y: snappedY,
-      id: `tile-${snappedX}-${snappedY}-${Math.random()}`,
-      ...selectedTile,
-    };
+    const newCell = { x, y, color: lineColor };
 
-    // Para seleções maiores, precisamos remover todos os tiles que estarão sob a nova seleção
-    const newWidth = selectedTile.crop?.width || GRID_SIZE;
-    const newHeight = selectedTile.crop?.height || GRID_SIZE;
-
-    const newTiles = tiles.filter(t => {
-      const overlapX = t.x >= snappedX && t.x < snappedX + newWidth;
-      const overlapY = t.y >= snappedY && t.y < snappedY + newHeight;
-      return !overlapX || !overlapY;
+    setPaintedCells(prevCells => {
+      const existingCellIndex = prevCells.findIndex(cell => cell.x === x && cell.y === y);
+      if (existingCellIndex !== -1) {
+        const updatedCells = [...prevCells];
+        updatedCells[existingCellIndex] = newCell;
+        return updatedCells;
+      }
+      return [...prevCells, newCell];
     });
-
-    setTiles([...newTiles, newTile]);
   };
 
   const clearMap = () => {
@@ -457,7 +462,7 @@ const MapPage: React.FC = () => {
       setTokens([]);
       setLines([]);
       setAssets([]);
-      setTiles([]);
+      setPaintedCells([]);
       selectShape(null);
     }
   };
@@ -503,23 +508,17 @@ const MapPage: React.FC = () => {
         onTouchStart={checkDeselect}
       >
         <Layer>
-          {/* Tiles */}
-          {tiles.map((tile: MapTile) => {
-            if (tile.src && tile.crop) {
-              return <TileImage key={tile.id} tile={tile} />;
-            } else {
-              return (
-                <Rect
-                  key={tile.id}
-                  x={tile.x}
-                  y={tile.y}
-                  width={tile.crop?.width || GRID_SIZE}
-                  height={tile.crop?.height || GRID_SIZE}
-                  fill={tile.color}
-                />
-              );
-            }
-          })}
+          {/* Células Pintadas */}
+          {paintedCells.map((cell, i) => (
+            <Rect
+              key={i}
+              x={cell.x * GRID_SIZE}
+              y={cell.y * GRID_SIZE}
+              width={GRID_SIZE}
+              height={GRID_SIZE}
+              fill={cell.color}
+            />
+          ))}
           {/* Linhas Desenhadas */}
           {lines.map((line) => (
             <Line
@@ -562,6 +561,13 @@ const MapPage: React.FC = () => {
                 });
                 setAssets(newAssets);
               }}
+              onDblClick={() => {
+                const currentAsset = assets.find(a => a.id === asset.id);
+                if (currentAsset) {
+                  setEditingAsset(currentAsset);
+                  setAssetEditModalOpen(true);
+                }
+              }}
             />
           ))}
           {/* Tokens */}
@@ -575,9 +581,7 @@ const MapPage: React.FC = () => {
                 const id = e.target.id();
                 const newTokens = tokens.map((t) => {
                   if (t.id === id) {
-                    const newX = t.image ? e.target.x() + t.radius : e.target.x();
-                    const newY = t.image ? e.target.y() + t.radius : e.target.y();
-                    return { ...t, x: newX, y: newY };
+                    return { ...t, x: e.target.x(), y: e.target.y() };
                   }
                   return t;
                 });
@@ -595,59 +599,65 @@ const MapPage: React.FC = () => {
         </Layer>
       </Stage>
       <div className="map-toolbar">
-        {/* Navegação */}
-        <button onClick={() => handleZoom(1.2)} title="Aproximar">+</button>
-        <button onClick={() => handleZoom(0.8)} title="Afastar">-</button>
+        <div className="toolbar-group">
+          <button onClick={() => handleZoom(1.2)} title="Aproximar">+</button>
+          <button onClick={() => handleZoom(0.8)} title="Afastar">-</button>
+        </div>
         <div className="toolbar-separator"></div>
-
-        {/* Cenário */}
-        <label className="toolbar-label">Fundo:</label>
-        <input
-          type="color"
-          value={backgroundColor}
-          onChange={(e) => setBackgroundColor(e.target.value)}
-          className="toolbar-color-picker"
-          title="Cor de Fundo"
-        />
-        <button onClick={() => setTileSelectorOpen(true)}>Tile</button>
+        <div className="toolbar-group">
+          <label className="toolbar-label">Fundo:</label>
+          <input
+            type="color"
+            value={backgroundColor}
+            onChange={(e) => setBackgroundColor(e.target.value)}
+            className="toolbar-color-picker"
+            title="Cor de Fundo"
+          />
+        </div>
         <div className="toolbar-separator"></div>
-
-        {/* Tokens e Assets */}
-        <button onClick={addToken}>Token Genérico</button>
-        <button onClick={() => setCreatureSelectorOpen(true)}>Criatura</button>
-        <button onClick={() => setPlayerSelectorOpen(true)}>Jogador</button>
-        <button onClick={() => setAssetSelectorOpen(true)}>Asset</button>
+        <div className="toolbar-group">
+          <button onClick={addToken}>Token</button>
+          <button onClick={() => setCreatureSelectorOpen(true)}>Criatura</button>
+          <button onClick={() => setPlayerSelectorOpen(true)}>Jogador</button>
+          <button onClick={() => setAssetSelectorOpen(true)}>Asset</button>
+        </div>
         <div className="toolbar-separator"></div>
-
-        {/* Desenho */}
-        <button onClick={() => setDrawingMode('line')} className={drawingMode === 'line' ? 'active' : ''}>Linha</button>
-        <button onClick={() => setDrawingMode('free')} className={drawingMode === 'free' ? 'active' : ''}>Desenho Livre</button>
-        <input
-          type="color"
-          value={lineColor}
-          onChange={(e) => setLineColor(e.target.value)}
-          className="toolbar-color-picker"
-          title="Cor do Desenho"
-        />
+        <div className="toolbar-group">
+          <button onClick={() => setDrawingMode('paint')} className={drawingMode === 'paint' ? 'active' : ''}>Pintar</button>
+          <button onClick={() => setDrawingMode('line')} className={drawingMode === 'line' ? 'active' : ''}>Linha</button>
+          <button onClick={() => setDrawingMode('free')} className={drawingMode === 'free' ? 'active' : ''}>Desenhar</button>
+          <input
+            type="color"
+            value={lineColor}
+            onChange={(e) => setLineColor(e.target.value)}
+            className="toolbar-color-picker"
+            title="Cor do Desenho"
+          />
+        </div>
         <div className="toolbar-separator"></div>
-
-        {/* Ações */}
-        <button onClick={() => setDrawingMode('select')} className={drawingMode === 'select' ? 'active' : ''}>Selecionar</button>
-        <button
-          onClick={() => {
-            if (selectedId) {
-              setTokens(tokens.filter((t) => t.id !== selectedId));
-              setLines(lines.filter((l) => l.id !== selectedId));
-              setAssets(assets.filter((a) => a.id !== selectedId));
-              selectShape(null);
-            }
-          }}
-          disabled={!selectedId}
-        >
-          Deletar
-        </button>
-        <button onClick={clearMap}>Limpar Mapa</button>
-        <button onClick={fetchMapData}>Atualizar</button>
+        <div className="toolbar-group">
+          <button onClick={() => setDrawingMode('select')} className={drawingMode === 'select' ? 'active' : ''}>Selecionar</button>
+          <button
+            onClick={() => {
+              if (selectedId) {
+                setTokens(tokens.filter((t) => t.id !== selectedId));
+                setLines(lines.filter((l) => l.id !== selectedId));
+                setAssets(assets.filter((a) => a.id !== selectedId));
+                selectShape(null);
+              }
+            }}
+            disabled={!selectedId}
+          >
+            Deletar
+          </button>
+          <button onClick={clearMap}>Limpar</button>
+          <button onClick={fetchMapData}>Atualizar</button>
+        </div>
+        <div className="toolbar-separator"></div>
+        <div className="toolbar-group">
+          <button onClick={handleUndo} disabled={historyStep === 0}>Desfazer</button>
+          <button onClick={handleRedo} disabled={historyStep === history.length - 1}>Refazer</button>
+        </div>
       </div>
       {isCreatureSelectorOpen && (
         <CreatureSelector
@@ -667,21 +677,31 @@ const MapPage: React.FC = () => {
           onClose={() => setAssetSelectorOpen(false)}
         />
       )}
-      {isTileSelectorOpen && (
-        <TileSelector
-          onSelectTile={handleSelectTile}
-          onClose={() => setTileSelectorOpen(false)}
-        />
-      )}
+      <AssetEditModal
+        isOpen={isAssetEditModalOpen}
+        onClose={() => setAssetEditModalOpen(false)}
+        asset={editingAsset}
+        onSave={(newWidth, newHeight) => {
+          if (editingAsset) {
+            const newAssets = assets.map(a => {
+              if (a.id === editingAsset.id) {
+                return { ...a, width: newWidth, height: newHeight };
+              }
+              return a;
+            });
+            setAssets(newAssets);
+          }
+        }}
+      />
       <TokenEditModal
         isOpen={isTokenEditModalOpen}
         onClose={() => setTokenEditModalOpen(false)}
         token={editingToken}
-        onSave={(newName, newRadius) => {
+        onSave={(newName, newRadius, newImage) => {
           if (editingToken) {
             const newTokens = tokens.map(t => {
               if (t.id === editingToken.id) {
-                return { ...t, name: newName, radius: newRadius };
+                return { ...t, name: newName, radius: newRadius, image: newImage };
               }
               return t;
             });

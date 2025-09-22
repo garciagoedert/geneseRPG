@@ -4,10 +4,11 @@ import './Modal.css';
 interface TokenEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (newName: string, newRadius: number) => void;
+  onSave: (newName: string, newRadius: number, newImage: string) => void;
   token: {
     name: string;
     radius: number;
+    image?: string;
   } | null;
 }
 
@@ -19,11 +20,13 @@ const TokenEditModal: React.FC<TokenEditModalProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [radius, setRadius] = useState(20);
+  const [image, setImage] = useState('');
 
   useEffect(() => {
     if (token) {
       setName(token.name);
       setRadius(token.radius);
+      setImage(token.image || '');
     }
   }, [token]);
 
@@ -32,7 +35,7 @@ const TokenEditModal: React.FC<TokenEditModalProps> = ({
   }
 
   const handleSave = () => {
-    onSave(name, radius);
+    onSave(name, radius, image);
     onClose();
   };
 
@@ -48,6 +51,16 @@ const TokenEditModal: React.FC<TokenEditModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Nome do Token"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="token-image">URL da Imagem</label>
+          <input
+            id="token-image"
+            type="text"
+            value={image}
+            onChange={(e) => setImage(e.target.value)}
+            placeholder="https://exemplo.com/imagem.png"
           />
         </div>
         <div className="form-group">

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Image, Circle, Text } from 'react-konva';
+import React, { useRef, useEffect, useState } from 'react';
+import { Group, Image, Circle, Text, Label, Tag } from 'react-konva';
 import useImage from 'use-image';
 import Konva from 'konva';
 
@@ -13,25 +13,60 @@ interface TokenProps {
 
 const Token: React.FC<TokenProps> = ({ token, isSelected, onSelect, onDragEnd, onDblClick }) => {
   const [image] = useImage(token.image, 'anonymous');
+  const labelRef = useRef<Konva.Label>(null);
+  const [labelWidth, setLabelWidth] = useState(0);
+
+  useEffect(() => {
+    if (labelRef.current) {
+      setLabelWidth(labelRef.current.width());
+    }
+  }, [token.name]);
+
+  const scale = image ? Math.max((token.radius * 2) / image.width, (token.radius * 2) / image.height) : 1;
+  const scaledWidth = image ? image.width * scale : 0;
+  const scaledHeight = image ? image.height * scale : 0;
+  const imageX = -scaledWidth / 2;
+  const imageY = -scaledHeight / 2;
 
   return (
     <React.Fragment>
       {token.image && image ? (
-        <Image
-          image={image}
+        <Group
           id={token.id}
-          x={token.x - token.radius}
-          y={token.y - token.radius}
-          width={token.radius * 2}
-          height={token.radius * 2}
+          x={token.x}
+          y={token.y}
           draggable
-          onClick={onSelect}
-          onTap={onSelect}
-          stroke={isSelected ? 'cyan' : undefined}
-          strokeWidth={isSelected ? 3 : 0}
           onDragEnd={onDragEnd}
           onDblClick={onDblClick}
-        />
+          onClick={onSelect}
+          onTap={onSelect}
+        >
+          {/* Hitbox para tornar o grupo clicável e arrastável */}
+          <Circle
+            radius={token.radius}
+            fill="transparent"
+          />
+          <Group
+            clipFunc={(ctx) => {
+              ctx.arc(0, 0, token.radius, 0, Math.PI * 2, false);
+            }}
+            listening={false}
+          >
+            <Image
+              image={image}
+              x={imageX}
+              y={imageY}
+              width={scaledWidth}
+              height={scaledHeight}
+            />
+          </Group>
+          <Circle
+            radius={token.radius}
+            stroke={isSelected ? 'cyan' : '#daa520'}
+            strokeWidth={isSelected ? 4 : 2}
+            listening={false}
+          />
+        </Group>
       ) : (
         <Circle
           id={token.id}
@@ -48,16 +83,25 @@ const Token: React.FC<TokenProps> = ({ token, isSelected, onSelect, onDragEnd, o
           onDblClick={onDblClick}
         />
       )}
-      <Text
-        text={token.name}
-        x={token.x - token.radius}
+      <Label
+        ref={labelRef}
+        x={token.x}
         y={token.y + token.radius + 5}
-        width={token.radius * 2}
-        align="center"
-        fill="white"
-        fontSize={12}
+        offsetX={labelWidth / 2}
         listening={false}
-      />
+      >
+        <Tag
+          fill="rgba(0, 0, 0, 0.7)"
+          cornerRadius={8}
+        />
+        <Text
+          text={token.name}
+          align="center"
+          fill="white"
+          fontSize={12}
+          padding={5}
+        />
+      </Label>
     </React.Fragment>
   );
 };
