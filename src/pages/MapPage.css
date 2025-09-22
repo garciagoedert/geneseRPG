@@ -63,9 +63,11 @@
   border-radius: 6px;
   cursor: pointer;
   width: 40px;
-  height: 30px;
+  height: 38px; /* Altura ajustada para corresponder aos botões */
   padding: 2px;
   background-color: #3c3c3c;
+  box-sizing: border-box; /* Garante que padding e border não aumentem a altura total */
+  vertical-align: middle; /* Alinha verticalmente com os botões */
 }
 
 .toolbar-label {

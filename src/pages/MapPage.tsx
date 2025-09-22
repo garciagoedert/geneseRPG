@@ -11,6 +11,8 @@ import PlayerSelector from '../components/PlayerSelector';
 import AssetSelector from '../components/AssetSelector';
 import TileSelector from '../components/TileSelector';
 import TileImage from '../components/TileImage';
+import TokenEditModal from '../components/TokenEditModal';
+import '../components/TokenEditModal.css';
 
 // Representa um tile que foi colocado no mapa
 interface MapTile {
@@ -105,6 +107,8 @@ const MapPage: React.FC = () => {
   const [isPlayerSelectorOpen, setPlayerSelectorOpen] = useState(false);
   const [isAssetSelectorOpen, setAssetSelectorOpen] = useState(false);
   const [isTileSelectorOpen, setTileSelectorOpen] = useState(false);
+  const [isTokenEditModalOpen, setTokenEditModalOpen] = useState(false);
+  const [editingToken, setEditingToken] = useState<any | null>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -579,21 +583,11 @@ const MapPage: React.FC = () => {
                   });
                   setTokens(newTokens);
                 }}
-                onDblClick={(e) => {
-                  const id = e.target.id();
-                  const token = tokens.find(t => t.id === id);
+                onDblClick={() => {
+                  const token = tokens.find(t => t.id === selectedId);
                   if (token) {
-                    const newSize = prompt('Digite o novo tamanho para o token (ex: 20):', token.radius.toString());
-                    if (newSize && !isNaN(parseInt(newSize))) {
-                      const newRadius = parseInt(newSize);
-                      const newTokens = tokens.map(t => {
-                        if (t.id === id) {
-                          return { ...t, radius: newRadius };
-                        }
-                        return t;
-                      });
-                      setTokens(newTokens);
-                    }
+                    setEditingToken(token);
+                    setTokenEditModalOpen(true);
                   }
                 }}
               />
@@ -612,20 +606,31 @@ const MapPage: React.FC = () => {
         </Layer>
       </Stage>
       <div className="map-toolbar">
-        <button onClick={() => handleZoom(1.2)}>+</button>
-        <button onClick={() => handleZoom(0.8)}>-</button>
+        {/* Navegação */}
+        <button onClick={() => handleZoom(1.2)} title="Aproximar">+</button>
+        <button onClick={() => handleZoom(0.8)} title="Afastar">-</button>
         <div className="toolbar-separator"></div>
+
+        {/* Cenário */}
         <label className="toolbar-label">Fundo:</label>
         <input
           type="color"
           value={backgroundColor}
           onChange={(e) => setBackgroundColor(e.target.value)}
           className="toolbar-color-picker"
+          title="Cor de Fundo"
         />
+        <button onClick={() => setTileSelectorOpen(true)}>Tile</button>
         <div className="toolbar-separator"></div>
+
+        {/* Tokens e Assets */}
         <button onClick={addToken}>Token Genérico</button>
         <button onClick={() => setCreatureSelectorOpen(true)}>Criatura</button>
         <button onClick={() => setPlayerSelectorOpen(true)}>Jogador</button>
+        <button onClick={() => setAssetSelectorOpen(true)}>Asset</button>
+        <div className="toolbar-separator"></div>
+
+        {/* Desenho */}
         <button onClick={() => setDrawingMode('line')} className={drawingMode === 'line' ? 'active' : ''}>Linha</button>
         <button onClick={() => setDrawingMode('free')} className={drawingMode === 'free' ? 'active' : ''}>Desenho Livre</button>
         <input
@@ -635,9 +640,10 @@ const MapPage: React.FC = () => {
           className="toolbar-color-picker"
           title="Cor do Desenho"
         />
+        <div className="toolbar-separator"></div>
+
+        {/* Ações */}
         <button onClick={() => setDrawingMode('select')} className={drawingMode === 'select' ? 'active' : ''}>Selecionar</button>
-        <button onClick={() => setAssetSelectorOpen(true)}>Asset</button>
-        <button onClick={() => setTileSelectorOpen(true)}>Tile</button>
         <button
           onClick={() => {
             if (selectedId) {
@@ -678,6 +684,22 @@ const MapPage: React.FC = () => {
           onClose={() => setTileSelectorOpen(false)}
         />
       )}
+      <TokenEditModal
+        isOpen={isTokenEditModalOpen}
+        onClose={() => setTokenEditModalOpen(false)}
+        token={editingToken}
+        onSave={(newName, newRadius) => {
+          if (editingToken) {
+            const newTokens = tokens.map(t => {
+              if (t.id === editingToken.id) {
+                return { ...t, name: newName, radius: newRadius };
+              }
+              return t;
+            });
+            setTokens(newTokens);
+          }
+        }}
+      />
     </div>
   );
 };
