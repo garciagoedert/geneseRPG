@@ -34,3 +34,11 @@
 .widget-content {
   flex-grow: 1;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .mesa-dashboard {
+    padding: 1rem;
+    grid-template-columns: 1fr; /* Stack widgets vertically on smaller screens */
+  }
+}
