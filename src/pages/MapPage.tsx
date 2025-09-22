@@ -108,26 +108,27 @@ const MapPage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
+  const fetchMapData = async () => {
+    if (!mapId) return;
+    const mapRef = doc(db, 'maps', mapId);
+    const mapSnap = await getDoc(mapRef);
+    if (mapSnap.exists()) {
+      const data = mapSnap.data();
+      if (data.mapState) {
+        const state = JSON.parse(data.mapState);
+        setTokens(state.tokens || []);
+        setAssets(state.assets || []);
+        setLines(state.lines || []);
+        setTiles(state.tiles || []);
+        setBackgroundColor(state.backgroundColor || '#1a1f2c');
+      }
+    } else {
+      console.error("Mapa não encontrado!");
+    }
+  };
+
   // Efeito para carregar os dados do mapa
   useEffect(() => {
-    if (!mapId) return;
-    const fetchMapData = async () => {
-      const mapRef = doc(db, 'maps', mapId);
-      const mapSnap = await getDoc(mapRef);
-      if (mapSnap.exists()) {
-        const data = mapSnap.data();
-        if (data.mapState) {
-          const state = JSON.parse(data.mapState);
-          setTokens(state.tokens || []);
-          setAssets(state.assets || []);
-          setLines(state.lines || []);
-          setTiles(state.tiles || []);
-          setBackgroundColor(state.backgroundColor || '#1a1f2c');
-        }
-      } else {
-        console.error("Mapa não encontrado!");
-      }
-    };
     fetchMapData();
   }, [mapId]);
 
@@ -628,6 +629,7 @@ const MapPage: React.FC = () => {
           Deletar
         </button>
         <button onClick={clearMap}>Limpar Mapa</button>
+        <button onClick={fetchMapData}>Atualizar</button>
       </div>
       {isCreatureSelectorOpen && (
         <CreatureSelector
