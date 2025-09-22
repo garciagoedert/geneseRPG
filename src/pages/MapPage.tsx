@@ -60,7 +60,7 @@ interface Player {
 
 const GRID_SIZE = 32; // Alterado para corresponder ao TILE_SIZE
 
-type DrawingMode = 'select' | 'line' | 'tile';
+type DrawingMode = 'select' | 'line' | 'tile' | 'free';
 
 interface AssetTokenProps {
   asset: any;
@@ -97,6 +97,7 @@ const MapPage: React.FC = () => {
   const [lines, setLines] = useState<any[]>([]);
   const [drawing, setDrawing] = useState(false);
   const [drawingMode, setDrawingMode] = useState<DrawingMode>('select');
+  const [lineColor, setLineColor] = useState('#ffffff');
   const [selectedId, selectShape] = useState<string | null>(null);
   const [selectedTile, setSelectedTile] = useState<SelectedTile | null>(null);
   const [backgroundColor, setBackgroundColor] = useState('#1a1f2c');
@@ -181,40 +182,53 @@ const MapPage: React.FC = () => {
       placeTile(e);
       return;
     }
-
-    if (drawingMode !== 'line' || drawing) return;
-
-    const stage = e.target.getStage();
-    if (!stage) return;
-    const pos = stage.getPointerPosition();
-    if (!pos) return;
-
-    const transform = stage.getAbsoluteTransform().copy().invert();
-    const truePos = transform.point(pos);
-
+  
+    if (drawingMode !== 'line' && drawingMode !== 'free') return;
+  
     setDrawing(true);
-    setLines([...lines, { points: [truePos.x, truePos.y, truePos.x, truePos.y], id: `line-${lines.length}-${Math.random()}` }]);
-  };
-
-  const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (drawingMode !== 'line' || !drawing) return;
-
     const stage = e.target.getStage();
     if (!stage) return;
     const pos = stage.getPointerPosition();
     if (!pos) return;
-
+  
     const transform = stage.getAbsoluteTransform().copy().invert();
     const truePos = transform.point(pos);
-
+  
+    const newLine = {
+      points: [truePos.x, truePos.y],
+      id: `line-${lines.length}-${Math.random()}`,
+      color: lineColor,
+      mode: drawingMode,
+    };
+    setLines([...lines, newLine]);
+  };
+  
+  const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (!drawing || (drawingMode !== 'line' && drawingMode !== 'free')) return;
+  
+    const stage = e.target.getStage();
+    if (!stage) return;
+    const pos = stage.getPointerPosition();
+    if (!pos) return;
+  
+    const transform = stage.getAbsoluteTransform().copy().invert();
+    const truePos = transform.point(pos);
+  
     let lastLine = lines[lines.length - 1];
-    lastLine.points = [lastLine.points[0], lastLine.points[1], truePos.x, truePos.y];
-    lines.splice(lines.length - 1, 1, lastLine);
-    setLines([...lines]);
+    if (lastLine) {
+      if (lastLine.mode === 'line') {
+        // Para linha reta, atualiza apenas o ponto final
+        lastLine.points = [lastLine.points[0], lastLine.points[1], truePos.x, truePos.y];
+      } else {
+        // Para desenho livre, adiciona novos pontos
+        lastLine.points = lastLine.points.concat([truePos.x, truePos.y]);
+      }
+      lines.splice(lines.length - 1, 1, lastLine);
+      setLines([...lines]);
+    }
   };
 
   const handleMouseUp = () => {
-    if (drawingMode === 'select') return;
     setDrawing(false);
   };
 
@@ -502,7 +516,7 @@ const MapPage: React.FC = () => {
             <Line
               key={line.id}
               points={line.points}
-              stroke={selectedId === line.id ? 'cyan' : 'white'}
+              stroke={selectedId === line.id ? 'cyan' : line.color || 'white'}
               strokeWidth={5}
               tension={0.5}
               lineCap="round"
@@ -569,11 +583,12 @@ const MapPage: React.FC = () => {
                   const id = e.target.id();
                   const token = tokens.find(t => t.id === id);
                   if (token) {
-                    const newName = prompt('Digite o novo nome para o token:', token.name);
-                    if (newName) {
+                    const newSize = prompt('Digite o novo tamanho para o token (ex: 20):', token.radius.toString());
+                    if (newSize && !isNaN(parseInt(newSize))) {
+                      const newRadius = parseInt(newSize);
                       const newTokens = tokens.map(t => {
                         if (t.id === id) {
-                          return { ...t, name: newName };
+                          return { ...t, radius: newRadius };
                         }
                         return t;
                       });
@@ -612,6 +627,14 @@ const MapPage: React.FC = () => {
         <button onClick={() => setCreatureSelectorOpen(true)}>Criatura</button>
         <button onClick={() => setPlayerSelectorOpen(true)}>Jogador</button>
         <button onClick={() => setDrawingMode('line')} className={drawingMode === 'line' ? 'active' : ''}>Linha</button>
+        <button onClick={() => setDrawingMode('free')} className={drawingMode === 'free' ? 'active' : ''}>Desenho Livre</button>
+        <input
+          type="color"
+          value={lineColor}
+          onChange={(e) => setLineColor(e.target.value)}
+          className="toolbar-color-picker"
+          title="Cor do Desenho"
+        />
         <button onClick={() => setDrawingMode('select')} className={drawingMode === 'select' ? 'active' : ''}>Selecionar</button>
         <button onClick={() => setAssetSelectorOpen(true)}>Asset</button>
         <button onClick={() => setTileSelectorOpen(true)}>Tile</button>
