@@ -6,7 +6,7 @@ import './CreatureSelector.css';
 interface Creature {
   id: string;
   name: string;
-  // Adicione outros campos da criatura se necessário
+  imageUrl: string;
 }
 
 interface CreatureSelectorProps {

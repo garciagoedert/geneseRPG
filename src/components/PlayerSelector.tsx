@@ -6,7 +6,7 @@ import './PlayerSelector.css';
 interface Player {
   id: string;
   name: string;
-  // Adicione outros campos do personagem se necessário
+  imageUrl: string;
 }
 
 interface PlayerSelectorProps {

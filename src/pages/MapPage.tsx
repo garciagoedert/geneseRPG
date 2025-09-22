@@ -13,6 +13,7 @@ import TileSelector from '../components/TileSelector';
 import TileImage from '../components/TileImage';
 import TokenEditModal from '../components/TokenEditModal';
 import '../components/TokenEditModal.css';
+import Token from '../components/Token';
 
 // Representa um tile que foi colocado no mapa
 interface MapTile {
@@ -53,11 +54,13 @@ interface Asset {
 interface Creature {
   id: string;
   name: string;
+  imageUrl: string;
 }
 
 interface Player {
   id: string;
   name: string;
+  imageUrl: string;
 }
 
 const GRID_SIZE = 32; // Alterado para corresponder ao TILE_SIZE
@@ -358,6 +361,7 @@ const MapPage: React.FC = () => {
       radius: 25, // Um pouco maior para diferenciar
       fill: 'purple',
       name: creature.name,
+      image: creature.imageUrl,
     };
     setTokens([...tokens, newCreatureToken]);
     setCreatureSelectorOpen(false);
@@ -381,6 +385,7 @@ const MapPage: React.FC = () => {
       radius: 20,
       fill: 'blue', // Cor diferente para jogadores
       name: player.name,
+      image: player.imageUrl,
     };
     setTokens([...tokens, newPlayerToken]);
     setPlayerSelectorOpen(false);
@@ -561,47 +566,31 @@ const MapPage: React.FC = () => {
           ))}
           {/* Tokens */}
           {tokens.map((token) => (
-            <React.Fragment key={token.id}>
-              <Circle
-                id={token.id}
-                x={token.x}
-                y={token.y}
-                radius={token.radius}
-                fill={token.fill}
-                draggable
-                onClick={() => selectShape(token.id)}
-                onTap={() => selectShape(token.id)}
-                stroke={selectedId === token.id ? 'cyan' : undefined}
-                strokeWidth={selectedId === token.id ? 3 : 0}
-                onDragEnd={(e) => {
-                  const id = e.target.id();
-                  const newTokens = tokens.map((t) => {
-                    if (t.id === id) {
-                      return { ...t, x: e.target.x(), y: e.target.y() };
-                    }
-                    return t;
-                  });
-                  setTokens(newTokens);
-                }}
-                onDblClick={() => {
-                  const token = tokens.find(t => t.id === selectedId);
-                  if (token) {
-                    setEditingToken(token);
-                    setTokenEditModalOpen(true);
+            <Token
+              key={token.id}
+              token={token}
+              isSelected={selectedId === token.id}
+              onSelect={() => selectShape(token.id)}
+              onDragEnd={(e) => {
+                const id = e.target.id();
+                const newTokens = tokens.map((t) => {
+                  if (t.id === id) {
+                    const newX = t.image ? e.target.x() + t.radius : e.target.x();
+                    const newY = t.image ? e.target.y() + t.radius : e.target.y();
+                    return { ...t, x: newX, y: newY };
                   }
-                }}
-              />
-              <Text
-                text={token.name}
-                x={token.x - token.radius}
-                y={token.y + token.radius + 5}
-                width={token.radius * 2}
-                align="center"
-                fill="white"
-                fontSize={12}
-                listening={false} // Para não interferir com o clique no círculo
-              />
-            </React.Fragment>
+                  return t;
+                });
+                setTokens(newTokens);
+              }}
+              onDblClick={() => {
+                const currentToken = tokens.find(t => t.id === token.id);
+                if (currentToken) {
+                  setEditingToken(currentToken);
+                  setTokenEditModalOpen(true);
+                }
+              }}
+            />
           ))}
         </Layer>
       </Stage>
