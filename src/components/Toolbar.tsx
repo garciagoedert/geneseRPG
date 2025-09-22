@@ -20,19 +20,21 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
   return (
     <>
-      <button onClick={() => setIsOpen(!isOpen)} className="toolbar-toggle-button">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 20h9" />
-          <path d="M12 4h9" />
-          <path d="M3 20h2" />
-          <path d="M3 4h2" />
-          <path d="M6 20h2" />
-          <path d="M6 4h2" />
-          <path d="M12 12h9" />
-          <path d="M3 12h2" />
-          <path d="M6 12h2" />
-        </svg>
-      </button>
+      <div className="toolbar-toggle-container">
+        <button onClick={() => setIsOpen(!isOpen)} className="toolbar-toggle-button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9" />
+            <path d="M12 4h9" />
+            <path d="M3 20h2" />
+            <path d="M3 4h2" />
+            <path d="M6 20h2" />
+            <path d="M6 4h2" />
+            <path d="M12 12h9" />
+            <path d="M3 12h2" />
+            <path d="M6 12h2" />
+          </svg>
+        </button>
+      </div>
       <div className={`toolbar-actions ${isOpen ? 'open' : ''}`}>
         <button onClick={onSelectMap} className="toolbar-button">
           Selecionar Mapa

@@ -1,19 +1,27 @@
-.toolbar-toggle-button {
+.toolbar-toggle-container {
   position: fixed;
   bottom: calc(2rem + 70px); /* Position above the dice roller */
   right: 2rem;
-  width: 60px; /* Match dice roller width for alignment container */
+  width: 60px; /* Match dice roller width for alignment */
+  height: 60px; /* Match dice roller height for alignment */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1051; /* Above dice roller */
+}
+
+.toolbar-toggle-button {
+  width: 48px;
   height: 48px;
+  border-radius: 50%; /* Perfect circle */
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: var(--primary-color);
   color: #fff;
   border: none;
-  border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  z-index: 1051; /* Above dice roller */
   transition: transform 0.2s ease-in-out;
 }
 
