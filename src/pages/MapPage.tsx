@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Stage, Layer, Circle, Text, Line, Image, Rect } from 'react-konva';
+import { Stage, Layer, Line, Image, Rect } from 'react-konva';
 import { useParams } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
