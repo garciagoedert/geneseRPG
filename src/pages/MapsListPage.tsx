@@ -34,8 +34,8 @@ const MapsListPage: React.FC = () => {
       try {
         let mapsQuery;
         if (currentUser.role === 'gm') {
-          // GMs veem todos os mapas que eles criaram
-          mapsQuery = query(collection(db, "maps"), where("ownerId", "==", currentUser.uid));
+          // GMs veem todos os mapas
+          mapsQuery = query(collection(db, "maps"));
         } else {
           // Players veem todos os mapas visíveis
           mapsQuery = query(collection(db, "maps"), where("visibleToPlayers", "==", true));
