@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Stage, Layer, Line, Image, Rect } from 'react-konva';
+import { Stage, Layer, Line, Image, Rect, Transformer, Text, Circle } from 'react-konva';
 import { useParams } from 'react-router-dom';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import Konva from 'konva';
 import useImage from 'use-image';
@@ -13,6 +13,18 @@ import TokenEditModal from '../components/TokenEditModal';
 import AssetEditModal from '../components/AssetEditModal';
 import '../components/TokenEditModal.css';
 import Token from '../components/Token';
+import LayerManager from '../components/LayerManager';
+import '../components/LayerManager.css';
+
+interface Layer {
+  id: string;
+  name: string;
+  isVisible: boolean;
+  tokens: any[];
+  assets: any[];
+  lines: any[];
+  shapes: any[];
+}
 
 interface Asset {
   name: string;
@@ -35,7 +47,7 @@ interface Player {
 
 const GRID_SIZE = 32; // Alterado para corresponder ao TILE_SIZE
 
-type DrawingMode = 'select' | 'line' | 'free' | 'paint';
+type DrawingMode = 'select' | 'line' | 'free' | 'paint' | 'measure' | 'fog' | 'circle' | 'square';
 
 interface PaintedCell {
   x: number;
@@ -46,13 +58,13 @@ interface PaintedCell {
 interface AssetTokenProps {
   asset: any;
   onSelect: () => void;
-  isSelected: boolean;
-  onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => void;
-  onDblClick: () => void;
+  onTransform: (e: Konva.KonvaEventObject<Event>) => void;
 }
 
-const AssetToken: React.FC<AssetTokenProps> = ({ asset, onSelect, isSelected, onDragEnd, onDblClick }) => {
+const AssetToken: React.FC<AssetTokenProps> = ({ asset, onSelect, onTransform }) => {
   const [image] = useImage(asset.src, 'anonymous');
+  const shapeRef = useRef<Konva.Image>(null);
+
   return (
     <Image
       image={image}
@@ -61,26 +73,33 @@ const AssetToken: React.FC<AssetTokenProps> = ({ asset, onSelect, isSelected, on
       y={asset.y}
       width={asset.width}
       height={asset.height}
+      rotation={asset.rotation || 0}
       draggable
       onClick={onSelect}
       onTap={onSelect}
-      onDragEnd={onDragEnd}
-      onDblClick={onDblClick}
-      stroke={isSelected ? 'cyan' : undefined}
-      strokeWidth={isSelected ? 3 : 0}
+      ref={shapeRef}
+      onTransform={onTransform}
+      onDragEnd={onTransform} // Reutiliza a lógica para salvar o estado
     />
   );
 };
 
 const MapPage: React.FC = () => {
   const { mapId } = useParams<{ mapId: string }>();
-  const [tokens, setTokens] = useState<any[]>([]);
-  const [assets, setAssets] = useState<any[]>([]);
-  const [lines, setLines] = useState<any[]>([]);
+  const [layers, setLayers] = useState<Layer[]>([
+    { id: `layer-${Date.now()}`, name: 'Camada 1', isVisible: true, tokens: [], assets: [], lines: [], shapes: [] }
+  ]);
+  const [activeLayerId, setActiveLayerId] = useState<string | null>(layers[0]?.id || null);
+  const [drawingShape, setDrawingShape] = useState<any>(null);
   const [paintedCells, setPaintedCells] = useState<PaintedCell[]>([]);
+  const [fogPath, setFogPath] = useState<number[]>([]);
+  const [fogPaths, setFogPaths] = useState<any[]>([]);
+  const [isFogEnabled, setIsFogEnabled] = useState(true);
   const [drawing, setDrawing] = useState(false);
   const [drawingMode, setDrawingMode] = useState<DrawingMode>('select');
   const [lineColor, setLineColor] = useState('#ffffff');
+  const [measurePoints, setMeasurePoints] = useState<number[]>([]);
+  const [measureDistance, setMeasureDistance] = useState<string | null>(null);
   const [selectedId, selectShape] = useState<string | null>(null);
   const [backgroundColor, setBackgroundColor] = useState('#1a1f2c');
   const [isCreatureSelectorOpen, setCreatureSelectorOpen] = useState(false);
@@ -93,11 +112,34 @@ const MapPage: React.FC = () => {
   const [history, setHistory] = useState<any[]>([]);
   const [historyStep, setHistoryStep] = useState(0);
   const stageRef = useRef<Konva.Stage>(null);
+  const trRef = useRef<Konva.Transformer>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
+  // Garante que haja sempre uma camada ativa se houver camadas
+  useEffect(() => {
+    if (!activeLayerId && layers.length > 0) {
+      setActiveLayerId(layers[0].id);
+    }
+  }, [layers, activeLayerId]);
+
+  useEffect(() => {
+    if (trRef.current) {
+      const stage = stageRef.current;
+      if (!stage) return;
+
+      const selectedNode = stage.findOne('#' + selectedId);
+      if (selectedNode) {
+        trRef.current.nodes([selectedNode]);
+      } else {
+        trRef.current.nodes([]);
+      }
+      trRef.current.getLayer()?.batchDraw();
+    }
+  }, [selectedId]);
+
   const saveStateToHistory = () => {
-    const currentState = { tokens, assets, lines, paintedCells };
+    const currentState = { layers, paintedCells };
     const newHistory = history.slice(0, historyStep + 1);
     newHistory.push(currentState);
     setHistory(newHistory);
@@ -107,9 +149,7 @@ const MapPage: React.FC = () => {
   const handleUndo = () => {
     if (historyStep > 0) {
       const prevState = history[historyStep - 1];
-      setTokens(prevState.tokens);
-      setAssets(prevState.assets);
-      setLines(prevState.lines);
+      setLayers(prevState.layers);
       setPaintedCells(prevState.paintedCells);
       setHistoryStep(historyStep - 1);
     }
@@ -118,36 +158,36 @@ const MapPage: React.FC = () => {
   const handleRedo = () => {
     if (historyStep < history.length - 1) {
       const nextState = history[historyStep + 1];
-      setTokens(nextState.tokens);
-      setAssets(nextState.assets);
-      setLines(nextState.lines);
+      setLayers(nextState.layers);
       setPaintedCells(nextState.paintedCells);
       setHistoryStep(historyStep + 1);
     }
   };
 
-  const fetchMapData = async () => {
+  // Efeito para carregar e ouvir os dados do mapa em tempo real
+  useEffect(() => {
     if (!mapId) return;
     const mapRef = doc(db, 'maps', mapId);
-    const mapSnap = await getDoc(mapRef);
-    if (mapSnap.exists()) {
-      const data = mapSnap.data();
-      if (data.mapState) {
-        const state = JSON.parse(data.mapState);
-        setTokens(state.tokens || []);
-        setAssets(state.assets || []);
-        setLines(state.lines || []);
-        setPaintedCells(state.paintedCells || []);
-        setBackgroundColor(state.backgroundColor || '#1a1f2c');
-      }
-    } else {
-      console.error("Mapa não encontrado!");
-    }
-  };
 
-  // Efeito para carregar os dados do mapa
-  useEffect(() => {
-    fetchMapData();
+    const unsubscribe = onSnapshot(mapRef, (mapSnap) => {
+      if (mapSnap.exists()) {
+        const data = mapSnap.data();
+        if (data.mapState) {
+          const state = JSON.parse(data.mapState);
+          const loadedLayers = state.layers || [{ id: `layer-${Date.now()}`, name: 'Camada 1', isVisible: true, tokens: [], assets: [], lines: [], shapes: [] }];
+          setLayers(loadedLayers);
+          setPaintedCells(state.paintedCells || []);
+          setFogPaths(state.fogPaths || []);
+          setIsFogEnabled(state.isFogEnabled !== false); // Padrão para true se não definido
+          setBackgroundColor(state.backgroundColor || '#1a1f2c');
+        }
+      } else {
+        console.error("Mapa não encontrado!");
+      }
+    });
+
+    // Limpa o listener quando o componente é desmontado
+    return () => unsubscribe();
   }, [mapId]);
 
   // Efeito para salvar os dados do mapa
@@ -155,7 +195,7 @@ const MapPage: React.FC = () => {
     if (!mapId) return;
     const saveMapState = async () => {
       const mapRef = doc(db, 'maps', mapId);
-      const mapState = JSON.stringify({ tokens, assets, lines, paintedCells, backgroundColor });
+      const mapState = JSON.stringify({ layers, paintedCells, fogPaths, isFogEnabled, backgroundColor });
       // Usamos setDoc com merge: true para não sobrescrever outros campos como nome e ownerId
       await setDoc(mapRef, { mapState }, { merge: true });
     };
@@ -168,7 +208,7 @@ const MapPage: React.FC = () => {
     return () => {
       clearTimeout(handler);
     };
-  }, [tokens, assets, lines, paintedCells, backgroundColor, mapId]);
+  }, [layers, paintedCells, fogPaths, isFogEnabled, backgroundColor, mapId]);
 
 
   useEffect(() => {
@@ -195,9 +235,54 @@ const MapPage: React.FC = () => {
   };
 
   const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (drawingMode === 'fog') {
+      setDrawing(true);
+      const stage = e.target.getStage();
+      if (!stage) return;
+      const pos = stage.getPointerPosition();
+      if (!pos) return;
+      const transform = stage.getAbsoluteTransform().copy().invert();
+      const truePos = transform.point(pos);
+      setFogPath([truePos.x, truePos.y]);
+      return;
+    }
+
     if (drawingMode === 'paint') {
       setDrawing(true);
       paintCell(e);
+      return;
+    }
+
+    if (drawingMode === 'measure') {
+      const stage = e.target.getStage();
+      if (!stage) return;
+      const pos = stage.getPointerPosition();
+      if (!pos) return;
+      const transform = stage.getAbsoluteTransform().copy().invert();
+      const truePos = transform.point(pos);
+      setMeasurePoints([truePos.x, truePos.y, truePos.x, truePos.y]);
+      setMeasureDistance('0 m');
+      setDrawing(true);
+      return;
+    }
+
+    if (drawingMode === 'circle' || drawingMode === 'square') {
+      setDrawing(true);
+      const stage = e.target.getStage();
+      if (!stage) return;
+      const pos = stage.getPointerPosition();
+      if (!pos) return;
+      const transform = stage.getAbsoluteTransform().copy().invert();
+      const truePos = transform.point(pos);
+      setDrawingShape({
+        type: drawingMode,
+        x: truePos.x,
+        y: truePos.y,
+        width: 0,
+        height: 0,
+        radius: 0,
+        color: lineColor,
+      });
       return;
     }
 
@@ -214,11 +299,17 @@ const MapPage: React.FC = () => {
   
     const newLine = {
       points: [truePos.x, truePos.y],
-      id: `line-${lines.length}-${Math.random()}`,
+      id: `line-${Date.now()}`,
       color: lineColor,
       mode: drawingMode,
     };
-    setLines([...lines, newLine]);
+    
+    setLayers(layers.map(layer => {
+      if (layer.id === activeLayerId) {
+        return { ...layer, lines: [...layer.lines, newLine] };
+      }
+      return layer;
+    }));
   };
   
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -226,6 +317,61 @@ const MapPage: React.FC = () => {
 
     if (drawingMode === 'paint') {
       paintCell(e);
+      return;
+    }
+
+    if (drawingMode === 'fog') {
+      const stage = e.target.getStage();
+      if (!stage) return;
+      const pos = stage.getPointerPosition();
+      if (!pos) return;
+      const transform = stage.getAbsoluteTransform().copy().invert();
+      const truePos = transform.point(pos);
+      const newPath = fogPath.concat([truePos.x, truePos.y]);
+      setFogPath(newPath);
+      return;
+    }
+
+    if (drawingMode === 'measure') {
+      const stage = e.target.getStage();
+      if (!stage) return;
+      const pos = stage.getPointerPosition();
+      if (!pos) return;
+      const transform = stage.getAbsoluteTransform().copy().invert();
+      const truePos = transform.point(pos);
+      
+      const newPoints = [measurePoints[0], measurePoints[1], truePos.x, truePos.y];
+      setMeasurePoints(newPoints);
+
+      const dx = newPoints[2] - newPoints[0];
+      const dy = newPoints[3] - newPoints[1];
+      const distanceInPixels = Math.sqrt(dx * dx + dy * dy);
+      const distanceInMeters = (distanceInPixels / GRID_SIZE) * 1.5; // Assumindo 1.5m por quadrado
+      setMeasureDistance(`${distanceInMeters.toFixed(1)} m`);
+      return;
+    }
+
+    if (drawingMode === 'circle' || drawingMode === 'square') {
+      const stage = e.target.getStage();
+      if (!stage) return;
+      const pos = stage.getPointerPosition();
+      if (!pos) return;
+      const transform = stage.getAbsoluteTransform().copy().invert();
+      const truePos = transform.point(pos);
+      
+      setDrawingShape((prev: any) => {
+        if (!prev) return null;
+        if (prev.type === 'circle') {
+          const dx = truePos.x - prev.x;
+          const dy = truePos.y - prev.y;
+          const radius = Math.sqrt(dx * dx + dy * dy);
+          return { ...prev, radius };
+        }
+        if (prev.type === 'square') {
+          return { ...prev, width: truePos.x - prev.x, height: truePos.y - prev.y };
+        }
+        return prev;
+      });
       return;
     }
 
@@ -239,25 +385,50 @@ const MapPage: React.FC = () => {
     const transform = stage.getAbsoluteTransform().copy().invert();
     const truePos = transform.point(pos);
   
-    let lastLine = lines[lines.length - 1];
-    if (lastLine) {
-      if (lastLine.mode === 'line') {
-        // Para linha reta, atualiza apenas o ponto final
-        lastLine.points = [lastLine.points[0], lastLine.points[1], truePos.x, truePos.y];
-      } else {
-        // Para desenho livre, adiciona novos pontos
-        lastLine.points = lastLine.points.concat([truePos.x, truePos.y]);
+    setLayers(layers.map(layer => {
+      if (layer.id === activeLayerId) {
+        let lastLine = layer.lines[layer.lines.length - 1];
+        if (lastLine) {
+          if (lastLine.mode === 'line') {
+            lastLine.points = [lastLine.points[0], lastLine.points[1], truePos.x, truePos.y];
+          } else {
+            lastLine.points = lastLine.points.concat([truePos.x, truePos.y]);
+          }
+          const newLines = [...layer.lines];
+          newLines.splice(newLines.length - 1, 1, lastLine);
+          return { ...layer, lines: newLines };
+        }
       }
-      lines.splice(lines.length - 1, 1, lastLine);
-      setLines([...lines]);
-    }
+      return layer;
+    }));
   };
 
   const handleMouseUp = () => {
     if (drawing) {
-      saveStateToHistory();
+      if (drawingMode === 'line' || drawingMode === 'free') {
+        saveStateToHistory();
+      } else if (drawingMode === 'fog' && fogPath.length > 0) {
+        setFogPaths([...fogPaths, fogPath]);
+        setFogPath([]);
+      } else if ((drawingMode === 'circle' || drawingMode === 'square') && drawingShape) {
+        setLayers(layers.map(layer => {
+          if (layer.id === activeLayerId) {
+            const newShape = { ...drawingShape, id: `shape-${Date.now()}` };
+            return { ...layer, shapes: [...layer.shapes, newShape] };
+          }
+          return layer;
+        }));
+        setDrawingShape(null);
+      }
     }
     setDrawing(false);
+    if (drawingMode === 'measure') {
+      // Opcional: limpar a linha de medição após um tempo ou no próximo clique
+      setTimeout(() => {
+        setMeasurePoints([]);
+        setMeasureDistance(null);
+      }, 3000); // Limpa após 3 segundos
+    }
   };
 
 
@@ -352,15 +523,21 @@ const MapPage: React.FC = () => {
 
 
   const addToken = () => {
+    if (!activeLayerId) return;
     const newToken = {
       x: Math.random() * dimensions.width,
       y: Math.random() * dimensions.height,
-      id: `token-${tokens.length}`,
+      id: `token-${Date.now()}`,
       radius: 20,
       fill: 'red',
       name: 'Token'
     };
-    setTokens([...tokens, newToken]);
+    setLayers(layers.map(layer => {
+      if (layer.id === activeLayerId) {
+        return { ...layer, tokens: [...layer.tokens, newToken] };
+      }
+      return layer;
+    }));
   };
 
   const handleSelectCreature = (creature: Creature) => {
@@ -384,7 +561,12 @@ const MapPage: React.FC = () => {
       name: creature.name,
       image: creature.imageUrl,
     };
-    setTokens([...tokens, newCreatureToken]);
+    setLayers(layers.map(layer => {
+      if (layer.id === activeLayerId) {
+        return { ...layer, tokens: [...layer.tokens, newCreatureToken] };
+      }
+      return layer;
+    }));
     setCreatureSelectorOpen(false);
   };
 
@@ -408,7 +590,12 @@ const MapPage: React.FC = () => {
       name: player.name,
       image: player.imageUrl,
     };
-    setTokens([...tokens, newPlayerToken]);
+    setLayers(layers.map(layer => {
+      if (layer.id === activeLayerId) {
+        return { ...layer, tokens: [...layer.tokens, newPlayerToken] };
+      }
+      return layer;
+    }));
     setPlayerSelectorOpen(false);
   };
 
@@ -428,7 +615,12 @@ const MapPage: React.FC = () => {
       id: `asset-${asset.name}-${Math.random()}`,
       ...asset,
     };
-    setAssets([...assets, newAsset]);
+    setLayers(layers.map(layer => {
+      if (layer.id === activeLayerId) {
+        return { ...layer, assets: [...layer.assets, newAsset] };
+      }
+      return layer;
+    }));
     setAssetSelectorOpen(false);
   };
 
@@ -459,12 +651,46 @@ const MapPage: React.FC = () => {
 
   const clearMap = () => {
     if (window.confirm('Tem certeza que deseja limpar todo o mapa? Esta ação não pode ser desfeita.')) {
-      setTokens([]);
-      setLines([]);
-      setAssets([]);
+      setLayers(layers.map(l => ({ ...l, tokens: [], assets: [], lines: [], shapes: [] })));
       setPaintedCells([]);
       selectShape(null);
     }
+  };
+
+  const handleAddLayer = () => {
+    const newLayer: Layer = {
+      id: `layer-${Date.now()}`,
+      name: `Camada ${layers.length + 1}`,
+      isVisible: true,
+      tokens: [],
+      assets: [],
+      lines: [],
+      shapes: [],
+    };
+    setLayers([...layers, newLayer]);
+    setActiveLayerId(newLayer.id);
+  };
+
+  const handleDeleteLayer = (id: string) => {
+    if (layers.length <= 1) {
+      alert("Não é possível deletar a última camada.");
+      return;
+    }
+    if (window.confirm("Tem certeza que deseja deletar esta camada e todo o seu conteúdo?")) {
+      const newLayers = layers.filter(l => l.id !== id);
+      setLayers(newLayers);
+      if (activeLayerId === id) {
+        setActiveLayerId(newLayers[0]?.id || null);
+      }
+    }
+  };
+
+  const handleRenameLayer = (id: string, newName: string) => {
+    setLayers(layers.map(l => l.id === id ? { ...l, name: newName } : l));
+  };
+
+  const handleLayerToggleVisibility = (id: string) => {
+    setLayers(layers.map(l => l.id === id ? { ...l, isVisible: !l.isVisible } : l));
   };
 
   const handleZoom = (scaleFactor: number) => {
@@ -519,85 +745,179 @@ const MapPage: React.FC = () => {
               fill={cell.color}
             />
           ))}
-          {/* Linhas Desenhadas */}
-          {lines.map((line) => (
+          {/* Renderiza o conteúdo de cada camada */}
+          {layers.map(layer => layer.isVisible && (
+            <React.Fragment key={layer.id}>
+              {/* Formas */}
+              {layer.shapes.map((shape) => {
+                if (shape.type === 'circle') {
+                  return <Circle key={shape.id} x={shape.x} y={shape.y} radius={shape.radius} stroke={shape.color} strokeWidth={2} />;
+                }
+                if (shape.type === 'square') {
+                  return <Rect key={shape.id} x={shape.x} y={shape.y} width={shape.width} height={shape.height} stroke={shape.color} strokeWidth={2} />;
+                }
+                return null;
+              })}
+              {/* Linhas */}
+              {layer.lines.map((line) => (
+                <Line
+                  key={line.id}
+                  points={line.points}
+                  stroke={selectedId === line.id ? 'cyan' : line.color || 'white'}
+                  strokeWidth={5}
+                  tension={0.5}
+                  lineCap="round"
+                  onClick={() => { if (drawingMode === 'select') selectShape(line.id); }}
+                  onTap={() => { if (drawingMode === 'select') selectShape(line.id); }}
+                />
+              ))}
+              {/* Assets */}
+              {layer.assets.map((asset) => (
+                <AssetToken
+                  key={asset.id}
+                  asset={asset}
+                  onSelect={() => { if (drawingMode === 'select') selectShape(asset.id); }}
+                  onTransform={(e) => {
+                    const node = e.target;
+                    const scaleX = node.scaleX();
+                    const scaleY = node.scaleY();
+                    const rotation = node.rotation();
+                    const x = node.x();
+                    const y = node.y();
+                    const snappedX = Math.round(x / GRID_SIZE) * GRID_SIZE;
+                    const snappedY = Math.round(y / GRID_SIZE) * GRID_SIZE;
+
+                    setLayers(layers.map(l => ({
+                      ...l,
+                      assets: l.assets.map(a => {
+                        if (a.id === asset.id) {
+                          return {
+                            ...a,
+                            x: snappedX,
+                            y: snappedY,
+                            width: Math.max(5, a.width * scaleX),
+                            height: Math.max(5, a.height * scaleY),
+                            rotation,
+                          };
+                        }
+                        return a;
+                      })
+                    })));
+                    node.scaleX(1);
+                    node.scaleY(1);
+                  }}
+                />
+              ))}
+              {/* Tokens */}
+              {layer.tokens.map((token) => (
+                <Token
+                  key={token.id}
+                  token={token}
+                  isSelected={selectedId === token.id}
+                  onSelect={() => selectShape(token.id)}
+                  onDragEnd={(e) => {
+                    const id = e.target.id();
+                    setLayers(layers.map(l => ({
+                      ...l,
+                      tokens: l.tokens.map(t => {
+                        if (t.id === id) {
+                          const snappedX = Math.round(e.target.x() / GRID_SIZE) * GRID_SIZE;
+                          const snappedY = Math.round(e.target.y() / GRID_SIZE) * GRID_SIZE;
+                          return { ...t, x: snappedX, y: snappedY };
+                        }
+                        return t;
+                      })
+                    })));
+                  }}
+                  onDblClick={() => {
+                    const currentToken = layer.tokens.find(t => t.id === token.id);
+                    if (currentToken) {
+                      setEditingToken(currentToken);
+                      setTokenEditModalOpen(true);
+                    }
+                  }}
+                />
+              ))}
+            </React.Fragment>
+          ))}
+          {/* Desenho da forma atual */}
+          {drawingShape && (
+            drawingShape.type === 'circle' ? (
+              <Circle x={drawingShape.x} y={drawingShape.y} radius={drawingShape.radius} stroke={drawingShape.color} strokeWidth={2} dash={[10, 5]} />
+            ) : (
+              <Rect x={drawingShape.x} y={drawingShape.y} width={drawingShape.width} height={drawingShape.height} stroke={drawingShape.color} strokeWidth={2} dash={[10, 5]} />
+            )
+          )}
+          <Transformer ref={trRef} />
+        </Layer>
+        {isFogEnabled && (
+          <Layer listening={false}>
+            {/* Camada da Névoa de Guerra */}
+            <Rect
+              x={-10000}
+            y={-10000}
+            width={20000}
+            height={20000}
+            fill="black"
+            opacity={0.8}
+          />
+          {fogPaths.map((path, i) => (
             <Line
-              key={line.id}
-              points={line.points}
-              stroke={selectedId === line.id ? 'cyan' : line.color || 'white'}
-              strokeWidth={5}
-              tension={0.5}
-              lineCap="round"
-              onClick={() => {
-                if (drawingMode === 'select') {
-                  selectShape(line.id);
-                }
-              }}
-              onTap={() => {
-                if (drawingMode === 'select') {
-                  selectShape(line.id);
-                }
-              }}
+              key={i}
+              points={path}
+              closed
+              fill="black"
+              globalCompositeOperation="destination-out"
             />
           ))}
-          {/* Assets */}
-          {assets.map((asset) => (
-            <AssetToken
-              key={asset.id}
-              asset={asset}
-              isSelected={selectedId === asset.id}
-              onSelect={() => {
-                if (drawingMode === 'select') {
-                  selectShape(asset.id);
-                }
-              }}
-              onDragEnd={(e) => {
-                const id = e.target.id();
-                const newAssets = assets.map((a) => {
-                  if (a.id === id) {
-                    return { ...a, x: e.target.x(), y: e.target.y() };
-                  }
-                  return a;
-                });
-                setAssets(newAssets);
-              }}
-              onDblClick={() => {
-                const currentAsset = assets.find(a => a.id === asset.id);
-                if (currentAsset) {
-                  setEditingAsset(currentAsset);
-                  setAssetEditModalOpen(true);
-                }
-              }}
+          {fogPath.length > 0 && (
+            <Line
+              points={fogPath}
+              closed
+              fill="black"
+              globalCompositeOperation="destination-out"
             />
-          ))}
-          {/* Tokens */}
-          {tokens.map((token) => (
-            <Token
-              key={token.id}
-              token={token}
-              isSelected={selectedId === token.id}
-              onSelect={() => selectShape(token.id)}
-              onDragEnd={(e) => {
-                const id = e.target.id();
-                const newTokens = tokens.map((t) => {
-                  if (t.id === id) {
-                    return { ...t, x: e.target.x(), y: e.target.y() };
-                  }
-                  return t;
-                });
-                setTokens(newTokens);
-              }}
-              onDblClick={() => {
-                const currentToken = tokens.find(t => t.id === token.id);
-                if (currentToken) {
-                  setEditingToken(currentToken);
-                  setTokenEditModalOpen(true);
-                }
-              }}
-            />
-          ))}
+          )}
+          </Layer>
+        )}
+        <Layer>
+          {/* Camada de UI - Medição, etc. */}
+          {measurePoints.length > 0 && (
+            <>
+              <Line
+                points={measurePoints}
+                stroke="cyan"
+                strokeWidth={2}
+                dash={[10, 5]}
+              />
+              <Rect
+                x={measurePoints[2] - 10}
+                y={measurePoints[3] + 10}
+                width={measureDistance ? measureDistance.length * 8 + 10 : 0}
+                height={20}
+                fill="rgba(0,0,0,0.5)"
+                cornerRadius={5}
+              />
+              <Text
+                x={measurePoints[2] - 5}
+                y={measurePoints[3] + 12}
+                text={measureDistance || ''}
+                fill="white"
+                fontSize={14}
+              />
+            </>
+          )}
         </Layer>
       </Stage>
+      <LayerManager
+        layers={layers}
+        activeLayerId={activeLayerId}
+        onLayerSelect={setActiveLayerId}
+        onLayerToggleVisibility={handleLayerToggleVisibility}
+        onAddLayer={handleAddLayer}
+        onRenameLayer={handleRenameLayer}
+        onDeleteLayer={handleDeleteLayer}
+      />
       <div className="map-toolbar">
         <div className="toolbar-group">
           <button onClick={() => handleZoom(1.2)} title="Aproximar">+</button>
@@ -623,9 +943,15 @@ const MapPage: React.FC = () => {
         </div>
         <div className="toolbar-separator"></div>
         <div className="toolbar-group">
+          <button onClick={() => setDrawingMode('measure')} className={drawingMode === 'measure' ? 'active' : ''} title="Medir Distância">📏</button>
+          <button onClick={() => setIsFogEnabled(!isFogEnabled)} title={isFogEnabled ? "Desativar Névoa" : "Ativar Névoa"}>{isFogEnabled ? '🌫️' : '☀️'}</button>
+          <button onClick={() => setDrawingMode('fog')} className={drawingMode === 'fog' ? 'active' : ''} title="Revelar Névoa">👁️</button>
+          <button onClick={() => setFogPaths([])} title="Resetar Revelação">🔄</button>
           <button onClick={() => setDrawingMode('paint')} className={drawingMode === 'paint' ? 'active' : ''}>Pintar</button>
           <button onClick={() => setDrawingMode('line')} className={drawingMode === 'line' ? 'active' : ''}>Linha</button>
           <button onClick={() => setDrawingMode('free')} className={drawingMode === 'free' ? 'active' : ''}>Desenhar</button>
+          <button onClick={() => setDrawingMode('square')} className={drawingMode === 'square' ? 'active' : ''} title="Quadrado">⬜</button>
+          <button onClick={() => setDrawingMode('circle')} className={drawingMode === 'circle' ? 'active' : ''} title="Círculo">⚪</button>
           <input
             type="color"
             value={lineColor}
@@ -640,9 +966,13 @@ const MapPage: React.FC = () => {
           <button
             onClick={() => {
               if (selectedId) {
-                setTokens(tokens.filter((t) => t.id !== selectedId));
-                setLines(lines.filter((l) => l.id !== selectedId));
-                setAssets(assets.filter((a) => a.id !== selectedId));
+                setLayers(layers.map(l => ({
+                  ...l,
+                  tokens: l.tokens.filter(t => t.id !== selectedId),
+                  assets: l.assets.filter(a => a.id !== selectedId),
+                  lines: l.lines.filter(line => line.id !== selectedId),
+                  shapes: l.shapes.filter(s => s.id !== selectedId),
+                })));
                 selectShape(null);
               }
             }}
@@ -651,7 +981,6 @@ const MapPage: React.FC = () => {
             Deletar
           </button>
           <button onClick={clearMap}>Limpar</button>
-          <button onClick={fetchMapData}>Atualizar</button>
         </div>
         <div className="toolbar-separator"></div>
         <div className="toolbar-group">
@@ -683,13 +1012,15 @@ const MapPage: React.FC = () => {
         asset={editingAsset}
         onSave={(newWidth, newHeight) => {
           if (editingAsset) {
-            const newAssets = assets.map(a => {
-              if (a.id === editingAsset.id) {
-                return { ...a, width: newWidth, height: newHeight };
-              }
-              return a;
-            });
-            setAssets(newAssets);
+            setLayers(layers.map(l => ({
+              ...l,
+              assets: l.assets.map(a => {
+                if (a.id === editingAsset.id) {
+                  return { ...a, width: newWidth, height: newHeight };
+                }
+                return a;
+              })
+            })));
           }
         }}
       />
@@ -697,15 +1028,17 @@ const MapPage: React.FC = () => {
         isOpen={isTokenEditModalOpen}
         onClose={() => setTokenEditModalOpen(false)}
         token={editingToken}
-        onSave={(newName, newRadius, newImage) => {
+        onSave={(newName, newRadius, newImage, newAura) => {
           if (editingToken) {
-            const newTokens = tokens.map(t => {
-              if (t.id === editingToken.id) {
-                return { ...t, name: newName, radius: newRadius, image: newImage };
-              }
-              return t;
-            });
-            setTokens(newTokens);
+            setLayers(layers.map(l => ({
+              ...l,
+              tokens: l.tokens.map(t => {
+                if (t.id === editingToken.id) {
+                  return { ...t, name: newName, radius: newRadius, image: newImage, aura: newAura };
+                }
+                return t;
+              })
+            })));
           }
         }}
       />

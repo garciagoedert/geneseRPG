@@ -4,11 +4,15 @@ import './Modal.css';
 interface TokenEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (newName: string, newRadius: number, newImage: string) => void;
+  onSave: (newName: string, newRadius: number, newImage: string, newAura: { color: string; radius: number } | null) => void;
   token: {
     name: string;
     radius: number;
     image?: string;
+    aura?: {
+      color: string;
+      radius: number;
+    };
   } | null;
 }
 
@@ -21,12 +25,16 @@ const TokenEditModal: React.FC<TokenEditModalProps> = ({
   const [name, setName] = useState('');
   const [radius, setRadius] = useState(20);
   const [image, setImage] = useState('');
+  const [auraColor, setAuraColor] = useState('#000000');
+  const [auraRadius, setAuraRadius] = useState(0);
 
   useEffect(() => {
     if (token) {
       setName(token.name);
       setRadius(token.radius);
       setImage(token.image || '');
+      setAuraColor(token.aura?.color || '#000000');
+      setAuraRadius(token.aura?.radius || 0);
     }
   }, [token]);
 
@@ -35,7 +43,8 @@ const TokenEditModal: React.FC<TokenEditModalProps> = ({
   }
 
   const handleSave = () => {
-    onSave(name, radius, image);
+    const newAura = auraRadius > 0 ? { color: auraColor, radius: auraRadius } : null;
+    onSave(name, radius, image, newAura);
     onClose();
   };
 
@@ -71,6 +80,27 @@ const TokenEditModal: React.FC<TokenEditModalProps> = ({
             value={radius}
             onChange={(e) => setRadius(parseInt(e.target.value, 10) || 0)}
             placeholder="Tamanho do Token"
+          />
+        </div>
+        <hr />
+        <h4>Aura</h4>
+        <div className="form-group">
+          <label htmlFor="aura-color">Cor da Aura</label>
+          <input
+            id="aura-color"
+            type="color"
+            value={auraColor}
+            onChange={(e) => setAuraColor(e.target.value)}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="aura-radius">Raio da Aura (0 para remover)</label>
+          <input
+            id="aura-radius"
+            type="number"
+            value={auraRadius}
+            onChange={(e) => setAuraRadius(parseInt(e.target.value, 10) || 0)}
+            placeholder="Raio da Aura"
           />
         </div>
         <div className="modal-actions">

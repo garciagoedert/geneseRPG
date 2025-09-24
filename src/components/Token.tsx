@@ -41,6 +41,15 @@ const Token: React.FC<TokenProps> = ({ token, isSelected, onSelect, onDragEnd, o
           onClick={onSelect}
           onTap={onSelect}
         >
+          {/* Aura */}
+          {token.aura && token.aura.radius > 0 && (
+            <Circle
+              radius={token.aura.radius}
+              fill={token.aura.color}
+              opacity={0.5}
+              listening={false}
+            />
+          )}
           {/* Hitbox para tornar o grupo clicável e arrastável */}
           <Circle
             radius={token.radius}
@@ -68,20 +77,32 @@ const Token: React.FC<TokenProps> = ({ token, isSelected, onSelect, onDragEnd, o
           />
         </Group>
       ) : (
-        <Circle
+        <Group
           id={token.id}
           x={token.x}
           y={token.y}
-          radius={token.radius}
-          fill={token.fill}
           draggable
-          onClick={onSelect}
-          onTap={onSelect}
-          stroke={isSelected ? 'cyan' : undefined}
-          strokeWidth={isSelected ? 3 : 0}
           onDragEnd={onDragEnd}
           onDblClick={onDblClick}
-        />
+          onClick={onSelect}
+          onTap={onSelect}
+        >
+          {/* Aura */}
+          {token.aura && token.aura.radius > 0 && (
+            <Circle
+              radius={token.aura.radius}
+              fill={token.aura.color}
+              opacity={0.5}
+              listening={false}
+            />
+          )}
+          <Circle
+            radius={token.radius}
+            fill={token.fill}
+            stroke={isSelected ? 'cyan' : undefined}
+            strokeWidth={isSelected ? 3 : 0}
+          />
+        </Group>
       )}
       <Label
         ref={labelRef}
