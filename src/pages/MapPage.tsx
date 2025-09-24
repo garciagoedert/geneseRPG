@@ -108,7 +108,7 @@ const MapPage: React.FC = () => {
   const [isTokenEditModalOpen, setTokenEditModalOpen] = useState(false);
   const [isAssetEditModalOpen, setAssetEditModalOpen] = useState(false);
   const [editingToken, setEditingToken] = useState<any | null>(null);
-  const [editingAsset, setEditingAsset] = useState<any | null>(null);
+  const [editingAsset] = useState<any | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [historyStep, setHistoryStep] = useState(0);
   const stageRef = useRef<Konva.Stage>(null);
