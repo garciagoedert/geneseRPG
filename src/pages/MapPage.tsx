@@ -5,6 +5,7 @@ import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import Konva from 'konva';
 import useImage from 'use-image';
+import { useAuth } from '../context/AuthContext';
 import './MapPage.css';
 import CreatureSelector from '../components/CreatureSelector';
 import PlayerSelector from '../components/PlayerSelector';
@@ -59,9 +60,10 @@ interface AssetTokenProps {
   asset: any;
   onSelect: () => void;
   onTransform: (e: Konva.KonvaEventObject<Event>) => void;
+  onDblClick: () => void;
 }
 
-const AssetToken: React.FC<AssetTokenProps> = ({ asset, onSelect, onTransform }) => {
+const AssetToken: React.FC<AssetTokenProps> = ({ asset, onSelect, onTransform, onDblClick }) => {
   const [image] = useImage(asset.src, 'anonymous');
   const shapeRef = useRef<Konva.Image>(null);
 
@@ -80,12 +82,15 @@ const AssetToken: React.FC<AssetTokenProps> = ({ asset, onSelect, onTransform })
       ref={shapeRef}
       onTransform={onTransform}
       onDragEnd={onTransform} // Reutiliza a lógica para salvar o estado
+      onDblClick={onDblClick}
     />
   );
 };
 
 const MapPage: React.FC = () => {
   const { mapId } = useParams<{ mapId: string }>();
+  const { currentUser } = useAuth();
+  const [isMaster, setIsMaster] = useState(false);
   const [layers, setLayers] = useState<Layer[]>([
     { id: `layer-${Date.now()}`, name: 'Camada 1', isVisible: true, tokens: [], assets: [], lines: [], shapes: [] }
   ]);
@@ -108,7 +113,7 @@ const MapPage: React.FC = () => {
   const [isTokenEditModalOpen, setTokenEditModalOpen] = useState(false);
   const [isAssetEditModalOpen, setAssetEditModalOpen] = useState(false);
   const [editingToken, setEditingToken] = useState<any | null>(null);
-  const [editingAsset] = useState<any | null>(null);
+  const [editingAsset, setEditingAsset] = useState<any | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [historyStep, setHistoryStep] = useState(0);
   const stageRef = useRef<Konva.Stage>(null);
@@ -172,6 +177,9 @@ const MapPage: React.FC = () => {
     const unsubscribe = onSnapshot(mapRef, (mapSnap) => {
       if (mapSnap.exists()) {
         const data = mapSnap.data();
+        if (currentUser && data.ownerId === currentUser.uid) {
+          setIsMaster(true);
+        }
         if (data.mapState) {
           const state = JSON.parse(data.mapState);
           const loadedLayers = state.layers || [{ id: `layer-${Date.now()}`, name: 'Camada 1', isVisible: true, tokens: [], assets: [], lines: [], shapes: [] }];
@@ -188,7 +196,7 @@ const MapPage: React.FC = () => {
 
     // Limpa o listener quando o componente é desmontado
     return () => unsubscribe();
-  }, [mapId]);
+  }, [mapId, currentUser]);
 
   // Efeito para salvar os dados do mapa
   useEffect(() => {
@@ -222,7 +230,18 @@ const MapPage: React.FC = () => {
     };
     updateSize();
     window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        selectShape(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('resize', updateSize);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
 
@@ -734,6 +753,15 @@ const MapPage: React.FC = () => {
         onTouchStart={checkDeselect}
       >
         <Layer>
+          {/* Fundo clicável para deselecionar */}
+          <Rect
+            x={-10000}
+            y={-10000}
+            width={20000}
+            height={20000}
+            onClick={() => selectShape(null)}
+            onTap={() => selectShape(null)}
+          />
           {/* Células Pintadas */}
           {paintedCells.map((cell, i) => (
             <Rect
@@ -777,6 +805,10 @@ const MapPage: React.FC = () => {
                   key={asset.id}
                   asset={asset}
                   onSelect={() => { if (drawingMode === 'select') selectShape(asset.id); }}
+                  onDblClick={() => {
+                    setEditingAsset(asset);
+                    setAssetEditModalOpen(true);
+                  }}
                   onTransform={(e) => {
                     const node = e.target;
                     const scaleX = node.scaleX();
@@ -912,6 +944,7 @@ const MapPage: React.FC = () => {
       <LayerManager
         layers={layers}
         activeLayerId={activeLayerId}
+        isMaster={isMaster}
         onLayerSelect={setActiveLayerId}
         onLayerToggleVisibility={handleLayerToggleVisibility}
         onAddLayer={handleAddLayer}

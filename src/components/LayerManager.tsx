@@ -10,6 +10,7 @@ interface Layer {
 interface LayerManagerProps {
   layers: Layer[];
   activeLayerId: string | null;
+  isMaster: boolean;
   onLayerSelect: (id: string) => void;
   onLayerToggleVisibility: (id: string) => void;
   onAddLayer: () => void;
@@ -20,6 +21,7 @@ interface LayerManagerProps {
 const LayerManager: React.FC<LayerManagerProps> = ({
   layers,
   activeLayerId,
+  isMaster,
   onLayerSelect,
   onLayerToggleVisibility,
   onAddLayer,
@@ -40,20 +42,26 @@ const LayerManager: React.FC<LayerManagerProps> = ({
               {layer.isVisible ? '👁️' : '🙈'}
             </button>
             <span className="layer-name">{layer.name}</span>
-            <button onClick={(e) => {
-              e.stopPropagation();
-              const newName = prompt('Novo nome da camada:', layer.name);
-              if (newName) {
-                onRenameLayer(layer.id, newName);
-              }
-            }}>✏️</button>
-            <button onClick={(e) => { e.stopPropagation(); onDeleteLayer(layer.id); }}>🗑️</button>
+            {isMaster && (
+              <>
+                <button onClick={(e) => {
+                  e.stopPropagation();
+                  const newName = prompt('Novo nome da camada:', layer.name);
+                  if (newName) {
+                    onRenameLayer(layer.id, newName);
+                  }
+                }}>✏️</button>
+                <button onClick={(e) => { e.stopPropagation(); onDeleteLayer(layer.id); }}>🗑️</button>
+              </>
+            )}
           </li>
         ))}
       </ul>
-      <button onClick={onAddLayer} className="add-layer-btn">
-        + Adicionar Camada
-      </button>
+      {isMaster && (
+        <button onClick={onAddLayer} className="add-layer-btn">
+          + Adicionar Camada
+        </button>
+      )}
     </div>
   );
 };
