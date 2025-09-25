@@ -5,49 +5,78 @@
   padding: 0 2rem 2rem 2rem;
 }
 
-.sheet-details-full-width {
-  /* Esta classe não é mais necessária com o layout de coluna única */
+/* Remove padding do card de atributos para a tabela ocupar todo o espaço */
+.details-card:has(.attributes-table) {
+  padding: 1.5rem 0;
 }
 
-.attributes-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.attributes-list li {
+/* Tabela de Atributos */
+.attributes-table {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 0;
+  flex-direction: column;
+  border: 1px solid #333;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.attribute-group:not(:last-child) {
   border-bottom: 1px solid #333;
 }
 
-.attributes-list li:last-child {
-  border-bottom: none;
+.attribute-row {
+  display: grid;
+  grid-template-columns: 1fr 60px 60px; /* Nome | Pontos | Bônus */
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  gap: 1rem;
 }
 
-.attributes-list strong {
+.attribute-row:not(.main-attribute) {
+  border-top: 1px solid #2a2a2a; /* Linha separadora para perícias */
+}
+
+.main-attribute {
+  background-color: rgba(0,0,0,0.15);
+}
+
+.main-attribute .attribute-name {
+  font-size: 1.2rem;
+  font-weight: bold;
   color: var(--text-color);
-  font-size: 1.1rem;
 }
 
-.attributes-list .attribute-values {
-  display: flex;
-  gap: 0.75rem;
-  align-items: baseline;
-}
-
-.attributes-list .attribute-score {
+.main-attribute .attribute-score {
   font-size: 1.5rem;
+  font-weight: bold;
   color: var(--primary-color);
+  text-align: center;
+}
+
+.main-attribute .attribute-bonus {
+  font-size: 1.1rem;
+  color: #ccc;
+  text-align: center;
+}
+
+.skill-row {
+  grid-template-columns: 1fr 120px; /* Nome da Perícia | Valor (ocupa o espaço de pontos/bônus) */
+  grid-template-areas: "name value";
+}
+
+.skill-row .skill-name {
+  grid-area: name;
+  color: #bbb;
+  font-size: 0.95rem;
+}
+
+.skill-row .skill-value {
+  grid-area: value;
+  color: #ccc;
+  font-size: 1rem;
+  text-align: center;
   font-weight: bold;
 }
 
-.attributes-list .attribute-bonus {
-  font-size: 1.1rem;
-  color: #ccc;
-}
 
 /* Estilos para os cards dentro da ficha */
 .sheet-content-grid .character-list {
@@ -254,5 +283,7 @@
 
 /* Responsividade */
 @media (max-width: 768px) {
-  /* Nenhuma regra específica necessária aqui por enquanto, o layout já é de coluna única */
+  .attribute-row, .skill-row {
+    padding: 0.5rem 1rem;
+  }
 }

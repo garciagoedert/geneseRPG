@@ -107,3 +107,46 @@
   color: #ccc;
   min-width: 40px; /* Garante alinhamento */
 }
+
+/* Novos estilos para grupo de atributos e perícias */
+.attribute-group {
+  border: 1px solid #444;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  background-color: rgba(0,0,0,0.1);
+}
+
+.attribute-group .attribute-input {
+  margin-bottom: 1rem;
+}
+
+.attribute-group .attribute-input > label {
+  font-family: 'Cinzel', serif;
+  font-size: 1.2rem;
+  color: var(--primary-color);
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #444;
+}
+
+.skill-input {
+  display: flex;
+  flex-direction: column;
+}
+
+.skill-input label {
+  font-size: 0.9rem;
+  color: #ccc;
+  margin-bottom: 0.3rem;
+}
+
+.skill-input input {
+  padding: 0.5rem;
+  font-size: 1rem;
+}

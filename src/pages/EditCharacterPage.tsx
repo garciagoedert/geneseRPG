@@ -19,12 +19,12 @@ const EditCharacterPage: React.FC = () => {
   const [mp, setMp] = useState(10);
   const [gold, setGold] = useState(0);
   const [attributes, setAttributes] = useState({
-    strength: { score: 10, bonus: 0 },
-    dexterity: { score: 10, bonus: 0 },
-    constitution: { score: 10, bonus: 0 },
-    intelligence: { score: 10, bonus: 0 },
-    wisdom: { score: 10, bonus: 0 },
-    charisma: { score: 10, bonus: 0 },
+    strength: { score: 10, bonus: 0, skills: { atletismo: 0, briga: 0, forcaDeVontade: 0 } },
+    dexterity: { score: 10, bonus: 0, skills: { acrobacia: 0, furtividade: 0, performance: 0 } },
+    constitution: { score: 10, bonus: 0, skills: { sobrevivencia: 0, saude: 0, resistencia: 0 } },
+    intelligence: { score: 10, bonus: 0, skills: { arcanismo: 0, historia: 0, investigacao: 0, natureza: 0, religiao: 0 } },
+    wisdom: { score: 10, bonus: 0, skills: { intuicao: 0, medicina: 0, percepcao: 0, lideranca: 0 } },
+    charisma: { score: 10, bonus: 0, skills: { atuacao: 0, enganacao: 0, intimidacao: 0, persuasao: 0 } },
   });
   const [inventory, setInventory] = useState<string[]>([]);
   const [equipment, setEquipment] = useState<string[]>([]); // Estado para equipamentos
@@ -59,18 +59,19 @@ const EditCharacterPage: React.FC = () => {
           setGold(data.gold || 0);
 
           // Lógica para retrocompatibilidade de atributos
-          const newAttributes = { ...attributes };
-          for (const key in newAttributes) {
-            if (typeof data.attributes[key] === 'number') {
-              newAttributes[key as keyof typeof newAttributes] = {
-                score: data.attributes[key],
-                bonus: Math.floor((data.attributes[key] - 10) / 2),
-              };
-            } else {
-              newAttributes[key as keyof typeof newAttributes] = data.attributes[key];
+          const loadedAttributes = JSON.parse(JSON.stringify(attributes)); // Deep copy
+          for (const attrKey in loadedAttributes) {
+            if (data.attributes[attrKey]) {
+              loadedAttributes[attrKey].score = data.attributes[attrKey].score || 10;
+              loadedAttributes[attrKey].bonus = data.attributes[attrKey].bonus || 0;
+              if (data.attributes[attrKey].skills) {
+                for (const skillKey in loadedAttributes[attrKey].skills) {
+                  loadedAttributes[attrKey].skills[skillKey] = data.attributes[attrKey].skills[skillKey] || 0;
+                }
+              }
             }
           }
-          setAttributes(newAttributes);
+          setAttributes(loadedAttributes);
 
           setInventory(data.inventory || []);
           setEquipment(data.equipment || []); // Carrega os equipamentos
@@ -100,6 +101,20 @@ const EditCharacterPage: React.FC = () => {
       [attr]: {
         ...prev[attr as keyof typeof prev],
         [field]: parseInt(value, 10) || 0,
+      },
+    }));
+  };
+
+  const handleSkillChange = (e: React.ChangeEvent<HTMLInputElement>, attr: string, skill: string) => {
+    const { value } = e.target;
+    setAttributes(prev => ({
+      ...prev,
+      [attr]: {
+        ...prev[attr as keyof typeof prev],
+        skills: {
+          ...prev[attr as keyof typeof prev].skills,
+          [skill]: parseInt(value, 10) || 0,
+        },
       },
     }));
   };
@@ -236,26 +251,39 @@ const EditCharacterPage: React.FC = () => {
         </div>
         <fieldset>
           <legend>Atributos</legend>
-          {Object.entries(attributes).map(([key, values]) => (
-            <div key={key} className="attribute-input">
-              <label htmlFor={key}>{attributeTranslations[key] || key}</label>
-              <div className="attribute-wrapper">
-                <input
-                  type="number"
-                  id={`${key}-score`}
-                  name={`${key}-score`}
-                  value={values.score}
-                  onChange={(e) => handleAttributeChange(e, key, 'score')}
-                  placeholder="Pontos"
-                />
-                <input
-                  type="number"
-                  id={`${key}-bonus`}
-                  name={`${key}-bonus`}
-                  value={values.bonus}
-                  onChange={(e) => handleAttributeChange(e, key, 'bonus')}
-                  placeholder="Bônus"
-                />
+          {Object.entries(attributes).map(([attrKey, attrValues]) => (
+            <div key={attrKey} className="attribute-group">
+              <div className="attribute-input">
+                <label htmlFor={attrKey}>{attributeTranslations[attrKey] || attrKey}</label>
+                <div className="attribute-wrapper">
+                  <input
+                    type="number"
+                    id={`${attrKey}-score`}
+                    value={attrValues.score}
+                    onChange={(e) => handleAttributeChange(e, attrKey, 'score')}
+                    placeholder="Pontos"
+                  />
+                  <input
+                    type="number"
+                    id={`${attrKey}-bonus`}
+                    value={attrValues.bonus}
+                    onChange={(e) => handleAttributeChange(e, attrKey, 'bonus')}
+                    placeholder="Bônus"
+                  />
+                </div>
+              </div>
+              <div className="skills-grid">
+                {Object.entries(attrValues.skills).map(([skillKey, skillValue]) => (
+                  <div key={skillKey} className="skill-input">
+                    <label htmlFor={`${attrKey}-${skillKey}`}>{skillKey.charAt(0).toUpperCase() + skillKey.slice(1)}</label>
+                    <input
+                      type="number"
+                      id={`${attrKey}-${skillKey}`}
+                      value={skillValue}
+                      onChange={(e) => handleSkillChange(e, attrKey, skillKey)}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           ))}

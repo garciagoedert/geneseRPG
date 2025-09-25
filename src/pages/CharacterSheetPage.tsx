@@ -8,9 +8,14 @@ import './DetailsPage.css';
 import './CharacterSheetPage.css';
 
 // Definindo uma interface para a estrutura da ficha
+interface Skill {
+  [key: string]: number;
+}
+
 interface Attribute {
   score: number;
   bonus: number;
+  skills?: Skill;
 }
 
 interface CharacterSheetData {
@@ -54,11 +59,11 @@ const CharacterSheetPage: React.FC = () => {
   const [abilitiesDetails, setAbilitiesDetails] = useState<DetailItem[]>([]);
   const [spellsDetails, setSpellsDetails] = useState<DetailItem[]>([]);
   const [inventoryDetails, setInventoryDetails] = useState<DetailItem[]>([]);
-  const [equipmentDetails, setEquipmentDetails] = useState<DetailItem[]>([]); // Novo estado para equipamentos
+  const [equipmentDetails, setEquipmentDetails] = useState<DetailItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('main'); // Estado para a aba ativa
+  const [activeTab, setActiveTab] = useState('main');
   const [isRepositioning, setIsRepositioning] = useState(false);
-  const [imagePosition, setImagePosition] = useState(50); // Posição em %
+  const [imagePosition, setImagePosition] = useState(50);
   const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
@@ -77,11 +82,7 @@ const CharacterSheetPage: React.FC = () => {
             if (!ids || ids.length === 0) return [];
             const detailsQuery = query(collection(db, collectionName), where('__name__', 'in', ids));
             const snapshot = await getDocs(detailsQuery);
-            return snapshot.docs.map(d => ({
-              id: d.id,
-              name: d.data().name,
-              imageUrl: d.data().imageUrl,
-            }));
+            return snapshot.docs.map(d => ({ id: d.id, name: d.data().name, imageUrl: d.data().imageUrl }));
           };
 
           setAbilitiesDetails(await fetchDetails('spellsAndAbilities', data.abilities));
@@ -97,27 +98,22 @@ const CharacterSheetPage: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchSheetData();
   }, [sheetId]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!isRepositioning || !imageRef.current) return;
-    
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (!imageRef.current) return;
       const rect = imageRef.current.parentElement!.getBoundingClientRect();
-      // Calcula a nova posição Y baseada no movimento do mouse, limitado entre 0 e a altura do container
       const newY = Math.max(0, Math.min(rect.height, moveEvent.clientY - rect.top));
       const newPosition = (newY / rect.height) * 100;
       setImagePosition(newPosition);
     };
-
     const handleMouseUp = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
   };
@@ -141,6 +137,15 @@ const CharacterSheetPage: React.FC = () => {
   const attributeTranslations: { [key: string]: string } = {
     strength: 'Força', dexterity: 'Destreza', constitution: 'Constituição',
     intelligence: 'Inteligência', wisdom: 'Sabedoria', charisma: 'Carisma',
+  };
+
+  const skillTranslations: { [key: string]: string } = {
+    atletismo: 'Atletismo', briga: 'Briga', forcaDeVontade: 'Força de Vontade',
+    acrobacia: 'Acrobacia', furtividade: 'Furtividade', performance: 'Performance',
+    sobrevivencia: 'Sobrevivência', saude: 'Saúde', resistencia: 'Resistência',
+    arcanismo: 'Arcanismo', historia: 'História', investigacao: 'Investigação', natureza: 'Natureza', religiao: 'Religião',
+    intuicao: 'Intuição', medicina: 'Medicina', percepcao: 'Percepção', lideranca: 'Liderança',
+    atuacao: 'Atuação', enganacao: 'Enganação', intimidacao: 'Intimidação', persuasao: 'Persuasão',
   };
 
   const getAttributeDisplay = (attr: Attribute | number) => {
@@ -199,35 +204,14 @@ const CharacterSheetPage: React.FC = () => {
       </header>
 
       <div className="sheet-tabs">
-        <button className={`tab-button ${activeTab === 'main' ? 'active' : ''}`} onClick={() => setActiveTab('main')}>
-          Principal
-        </button>
-        <button className={`tab-button ${activeTab === 'details' ? 'active' : ''}`} onClick={() => setActiveTab('details')}>
-          Detalhes
-        </button>
+        <button className={`tab-button ${activeTab === 'main' ? 'active' : ''}`} onClick={() => setActiveTab('main')}>Principal</button>
+        <button className={`tab-button ${activeTab === 'attributes' ? 'active' : ''}`} onClick={() => setActiveTab('attributes')}>Atributos</button>
+        <button className={`tab-button ${activeTab === 'details' ? 'active' : ''}`} onClick={() => setActiveTab('details')}>Detalhes</button>
       </div>
 
       <div className="sheet-content-grid">
         {activeTab === 'main' && (
           <>
-            <div className="details-card">
-              <h2 className="details-card-title">Atributos</h2>
-              <ul className="attributes-list">
-                {Object.entries(sheetData.attributes).map(([key, value]) => {
-                  const { score, bonusDisplay } = getAttributeDisplay(value);
-                  return (
-                    <li key={key}>
-                      <strong>{attributeTranslations[key] || key}</strong>
-                      <div className="attribute-values">
-                        <span className="attribute-score">{score}</span>
-                        <span className="attribute-bonus">{bonusDisplay}</span>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-
             <div className="details-card">
               <h2 className="details-card-title">Recursos</h2>
               <div className="resources-grid">
@@ -256,12 +240,12 @@ const CharacterSheetPage: React.FC = () => {
             </div>
 
             <div className="details-card">
-              <h2 className="details-card-title">Habilidades e Talentos</h2>
+              <h2 className="details-card-title">Magias</h2>
               <div className="character-list">
-                {abilitiesDetails.map(ability => (
-                  <div key={ability.id} className="character-card" style={{ backgroundImage: ability.imageUrl ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(ability.imageUrl)})` : 'none' }}>
+                {spellsDetails.map(spell => (
+                  <div key={spell.id} className="character-card" style={{ backgroundImage: spell.imageUrl ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(spell.imageUrl)})` : 'none' }}>
                     <div className="character-card-info">
-                      <Link to={`/spell/${ability.id}`} className="character-card-link"><h3>{ability.name}</h3></Link>
+                      <Link to={`/spell/${spell.id}`} className="character-card-link"><h3>{spell.name}</h3></Link>
                     </div>
                   </div>
                 ))}
@@ -307,6 +291,35 @@ const CharacterSheetPage: React.FC = () => {
               </div>
             </div>
           </>
+        )}
+
+        {activeTab === 'attributes' && (
+          <div className="details-card">
+            <h2 className="details-card-title">Atributos</h2>
+            <div className="attributes-table">
+              {Object.entries(sheetData.attributes).map(([key, attrValue]) => {
+                const { score, bonusDisplay } = getAttributeDisplay(attrValue);
+                const skills = (attrValue as Attribute).skills;
+                return (
+                  <div key={key} className="attribute-group">
+                    <div className="attribute-row main-attribute">
+                      <span className="attribute-name">
+                        {attributeTranslations[key] || key}
+                      </span>
+                      <span className="attribute-score">{score}</span>
+                      <span className="attribute-bonus">{bonusDisplay}</span>
+                    </div>
+                    {skills && Object.entries(skills).map(([skillName, skillValue]) => (
+                      <div key={skillName} className="attribute-row skill-row">
+                        <span className="skill-name">{skillTranslations[skillName] || skillName}</span>
+                        <span className="skill-value">{skillValue >= 0 ? '+' : ''}{skillValue}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {activeTab === 'details' && (
