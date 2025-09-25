@@ -101,7 +101,7 @@ const CharacterSheetPage: React.FC = () => {
     fetchSheetData();
   }, [sheetId]);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = () => {
     if (!isRepositioning || !imageRef.current) return;
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (!imageRef.current) return;
@@ -240,12 +240,12 @@ const CharacterSheetPage: React.FC = () => {
             </div>
 
             <div className="details-card">
-              <h2 className="details-card-title">Magias</h2>
+              <h2 className="details-card-title">Habilidades</h2>
               <div className="character-list">
-                {spellsDetails.map(spell => (
-                  <div key={spell.id} className="character-card" style={{ backgroundImage: spell.imageUrl ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(spell.imageUrl)})` : 'none' }}>
+                {abilitiesDetails.map(ability => (
+                  <div key={ability.id} className="character-card" style={{ backgroundImage: ability.imageUrl ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(ability.imageUrl)})` : 'none' }}>
                     <div className="character-card-info">
-                      <Link to={`/spell/${spell.id}`} className="character-card-link"><h3>{spell.name}</h3></Link>
+                      <Link to={`/spell/${ability.id}`} className="character-card-link"><h3>{ability.name}</h3></Link>
                     </div>
                   </div>
                 ))}

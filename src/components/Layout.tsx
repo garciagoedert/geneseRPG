@@ -4,7 +4,7 @@ import {
   FaTh, FaUserPlus, FaMap, FaBook, FaMagic, FaBox, FaFileAlt, FaChalkboardTeacher, FaDiceD20, FaPlus, FaTimes, FaBars
 } from 'react-icons/fa';
 import { signOut } from 'firebase/auth';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import DiceRoller from './DiceRoller';
 import CharacterDetails from './CharacterDetails';
 import CharacterSelectorPanel from './CharacterSelectorPanel';
