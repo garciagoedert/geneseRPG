@@ -5,6 +5,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigate, useParams } from 'react-router-dom';
 import SpellSelector from '../components/SpellSelector';
 import ItemSelector from '../components/ItemSelector';
+import AutoResizingTextarea from '../components/AutoResizingTextarea'; // Importa o novo componente
 import { convertGoogleDriveLink } from '../utils/imageUtils';
 import './Auth.css'; // Reutilizando o CSS
 
@@ -309,7 +310,7 @@ const EditCharacterPage: React.FC = () => {
         />
         <div>
           <label htmlFor="history">História</label>
-          <textarea
+          <AutoResizingTextarea
             id="history"
             value={history}
             onChange={(e) => setHistory(e.target.value)}
@@ -317,7 +318,7 @@ const EditCharacterPage: React.FC = () => {
         </div>
         <div>
           <label htmlFor="appearance">Aparência</label>
-          <textarea
+          <AutoResizingTextarea
             id="appearance"
             value={appearance}
             onChange={(e) => setAppearance(e.target.value)}
@@ -325,7 +326,7 @@ const EditCharacterPage: React.FC = () => {
         </div>
         <div>
           <label htmlFor="personality">Personalidade</label>
-          <textarea
+          <AutoResizingTextarea
             id="personality"
             value={personality}
             onChange={(e) => setPersonality(e.target.value)}
@@ -333,7 +334,7 @@ const EditCharacterPage: React.FC = () => {
         </div>
         <div>
           <label htmlFor="notes">Anotações</label>
-          <textarea
+          <AutoResizingTextarea
             id="notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}

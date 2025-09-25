@@ -143,10 +143,53 @@
 }
 
 /* Estilos para o FAB e o Modal */
-.fab {
+.fab-container {
   position: fixed;
   bottom: 2rem;
   right: 2rem;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.fab-options {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease-in-out;
+  opacity: 0;
+  transform: translateY(20px);
+  visibility: hidden;
+}
+
+.fab-container.open .fab-options {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.fab-options .fab {
+  margin-top: 0.8rem;
+  width: 50px; /* Botões menores */
+  height: 50px;
+  font-size: 1.5rem;
+  background-color: #4b5563; /* Cor diferente para opções */
+}
+
+.fab-main {
+  width: 60px;
+  height: 60px;
+  font-size: 1.8rem;
+  background-color: var(--primary-color);
+  transition: transform 0.3s ease-in-out;
+}
+
+.fab-container.open .fab-main {
+  transform: rotate(45deg);
+}
+
+.fab {
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -155,11 +198,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: 1.8rem; /* Ajustado para caber melhor o ícone de usuário */
   border: none;
   cursor: pointer;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1050;
   transition: background-color 0.3s;
 }
 
@@ -190,6 +232,39 @@
   position: relative;
 }
 
+.modal-content.triple-modal {
+  display: flex;
+  flex-direction: column;
+  max-width: 95vw; /* Aumenta a largura máxima */
+  width: auto;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.triple-modal-main-content {
+  display: flex;
+  gap: 1.5rem;
+  align-items: stretch; /* Estica os painéis para a mesma altura */
+  flex-grow: 1;
+  min-height: 0; /* Necessário para o overflow funcionar corretamente no flexbox */
+}
+
+.dice-roller-panel {
+  width: 400px; /* Largura fixa para o rolador de dados */
+  flex-shrink: 0;
+  border-left: 1px solid var(--primary-color);
+  padding-left: 1.5rem;
+}
+
+.character-details-panel {
+  flex-grow: 1;
+  width: 400px; /* Largura ajustada */
+  border-left: 1px solid var(--primary-color);
+  padding-left: 1.5rem; /* Mais padding */
+  max-height: 75vh; /* Altura máxima para evitar que fique muito grande */
+  overflow-y: auto;
+}
+
 .close-button {
   margin-top: 1rem;
   background-color: var(--primary-color);
@@ -205,4 +280,28 @@
 
 .close-button:hover {
   background-color: #0056b3;
+}
+
+.character-selection-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.character-selection-list li {
+  padding: 0.8rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #4b5563;
+}
+
+.character-selection-list li:last-child {
+  border-bottom: none;
+}
+
+.character-selection-list li:hover {
+  background-color: #374151;
 }

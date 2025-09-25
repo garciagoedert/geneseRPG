@@ -6,18 +6,18 @@ interface Character {
   id: string;
   name: string;
   class: string;
+  level: number;
   currentHp: number;
   maxHp: number;
   armorClass: number;
   imageUrl?: string;
   attributes: {
-    strength: { score: number; bonus: number };
-    dexterity: { score: number; bonus: number };
-    constitution: { score: number; bonus: number };
-    intelligence: { score: number; bonus: number };
-    wisdom: { score: number; bonus: number };
-    charisma: { score: number; bonus: number };
+    [key: string]: { score: number; bonus: number };
   };
+  inventory?: string[];
+  equipment?: string[];
+  abilities?: string[];
+  spells?: string[];
 }
 
 interface CharacterWidgetProps {

@@ -29,12 +29,16 @@ import WikiEntryDetailPage from './pages/WikiEntryDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
+import { AuthProvider } from './context/AuthContext';
+import { UIProvider } from './context/UIContext';
 
 function App() {
   return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <Routes>
+    <AuthProvider>
+      <UIProvider>
+        <BrowserRouter>
+          <ScrollToTop />
+          <Routes>
         {/* Rotas Públicas */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -291,8 +295,10 @@ function App() {
             </ProtectedRoute>
           }
         />
-      </Routes>
-    </BrowserRouter>
+          </Routes>
+        </BrowserRouter>
+      </UIProvider>
+    </AuthProvider>
   );
 }
 

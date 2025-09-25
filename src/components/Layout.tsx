@@ -1,13 +1,37 @@
-import React, { useState, type ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect, type ReactNode } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
-  FaTh, FaUserPlus, FaMap, FaBook, FaMagic, FaBox, FaFileAlt, FaChalkboardTeacher, FaDiceD20
+  FaTh, FaUserPlus, FaMap, FaBook, FaMagic, FaBox, FaFileAlt, FaChalkboardTeacher, FaDiceD20, FaPlus, FaTimes, FaBars
 } from 'react-icons/fa';
 import { signOut } from 'firebase/auth';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import DiceRoller from './DiceRoller';
-import { auth } from '../firebaseConfig';
+import CharacterDetails from './CharacterDetails';
+import CharacterSelectorPanel from './CharacterSelectorPanel';
+import { auth, db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
+import { useUI } from '../context/UIContext';
 import './Layout.css';
+
+// Definindo a interface para os dados do personagem aqui para referência
+interface CharacterData {
+  id: string;
+  userId?: string;
+  name: string;
+  class: string;
+  level: number;
+  currentHp: number;
+  maxHp: number;
+  armorClass: number;
+  imageUrl?: string;
+  attributes: {
+    [key: string]: { score: number; bonus: number };
+  };
+  inventory?: string[];
+  equipment?: string[];
+  abilities?: string[];
+  spells?: string[];
+}
 
 interface LayoutProps {
   children: ReactNode;
@@ -15,11 +39,44 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { currentUser } = useAuth();
+  const { toggleToolbar } = useUI();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isDiceRollerOpen, setDiceRollerOpen] = useState(false);
+  const [playerCharacter, setPlayerCharacter] = useState<CharacterData | null>(null);
+  const [allCharacters, setAllCharacters] = useState<CharacterData[]>([]);
+  const [isFabMenuOpen, setFabMenuOpen] = useState(false);
+  const location = useLocation();
+  const isMesaPage = location.pathname === '/dashboard';
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
+  };
+
+  // Efeito para buscar todos os personagens uma vez, sem real-time para evitar lentidão.
+  useEffect(() => {
+    const fetchCharacters = async () => {
+      const charactersRef = collection(db, 'characterSheets');
+      const querySnapshot = await getDocs(charactersRef);
+      const charactersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CharacterData));
+      setAllCharacters(charactersList);
+    };
+    if (currentUser) {
+      fetchCharacters();
+    }
+  }, [currentUser]);
+
+  // Efeito para encontrar o personagem do usuário quando a lista ou o usuário mudar
+  useEffect(() => {
+    if (currentUser && allCharacters.length > 0) {
+      const userChar = allCharacters.find(char => char.userId === currentUser.uid);
+      if (userChar) {
+        setPlayerCharacter(userChar);
+      }
+    }
+  }, [currentUser, allCharacters]);
+
+  const handleSelectCharacter = (character: CharacterData) => {
+    setPlayerCharacter(character);
   };
 
   const handleLogout = async () => {
@@ -68,14 +125,36 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         {children}
       </main>
 
-      <button className="fab" onClick={() => setDiceRollerOpen(true)}>
-        <FaDiceD20 />
-      </button>
+      <div className={`fab-container ${isFabMenuOpen ? 'open' : ''}`}>
+        <div className="fab-options">
+          {isMesaPage && (
+            <button className="fab" onClick={() => { toggleToolbar(); setFabMenuOpen(false); }}>
+              <FaBars />
+            </button>
+          )}
+          <button className="fab" onClick={() => { setDiceRollerOpen(true); setFabMenuOpen(false); }}>
+            <FaDiceD20 />
+          </button>
+        </div>
+        <button className="fab fab-main" onClick={() => setFabMenuOpen(!isFabMenuOpen)}>
+          {isFabMenuOpen ? <FaTimes /> : <FaPlus />}
+        </button>
+      </div>
 
       {isDiceRollerOpen && (
         <div className="modal-overlay" onClick={() => setDiceRollerOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <DiceRoller />
+          <div className="modal-content triple-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="triple-modal-main-content">
+              <CharacterSelectorPanel characters={allCharacters} onSelect={handleSelectCharacter} />
+              <div className="dice-roller-panel">
+                <DiceRoller />
+              </div>
+              {playerCharacter && (
+                <div className="character-details-panel">
+                  <CharacterDetails character={playerCharacter} />
+                </div>
+              )}
+            </div>
             <button className="close-button" onClick={() => setDiceRollerOpen(false)}>Fechar</button>
           </div>
         </div>

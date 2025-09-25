@@ -43,6 +43,12 @@
   box-sizing: border-box; /* Garante que o padding não aumente a largura total */
 }
 
+.auth-form textarea {
+  min-height: 120px; /* Altura mínima inicial */
+  resize: vertical; /* Permite redimensionamento vertical */
+  overflow-y: hidden; /* Esconde a barra de rolagem, pois a altura se ajusta */
+}
+
 .auth-form button {
   width: 100%;
   padding: 0.8rem;

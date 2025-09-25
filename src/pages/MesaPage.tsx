@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useUI } from '../context/UIContext';
 import { db } from '../firebaseConfig';
 import { doc, onSnapshot, collection, getDocs, updateDoc, arrayUnion, setDoc, getDoc } from 'firebase/firestore';
 import { convertGoogleDriveLink } from '../utils/imageUtils';
@@ -9,25 +10,27 @@ import CharacterWidget from '../components/widgets/CharacterWidget';
 import MapWidget from '../components/widgets/MapWidget';
 import CombatTrackerWidget from '../components/widgets/CombatTrackerWidget';
 import InventoryWidget from '../components/widgets/InventoryWidget';
+import NotesWidget from '../components/widgets/NotesWidget';
 import Toolbar from '../components/Toolbar';
 import MesaModal from '../components/MesaModal';
+import CharacterDetails from '../components/CharacterDetails';
 
 interface CharacterData {
   id: string;
   name: string;
   class: string;
+  level: number;
   currentHp: number;
   maxHp: number;
   armorClass: number;
   imageUrl?: string;
   attributes: {
-    strength: { score: number; bonus: number };
-    dexterity: { score: number; bonus: number };
-    constitution: { score: number; bonus: number };
-    intelligence: { score: number; bonus: number };
-    wisdom: { score: number; bonus: number };
-    charisma: { score: number; bonus: number };
+    [key: string]: { score: number; bonus: number };
   };
+  inventory?: string[];
+  equipment?: string[];
+  abilities?: string[];
+  spells?: string[];
 }
 
 interface MapData {
@@ -52,6 +55,7 @@ interface ItemData {
 
 const MesaPage: React.FC = () => {
   const { currentUser } = useAuth();
+  const { isToolbarOpen } = useUI();
   
   const [characters, setCharacters] = useState<CharacterData[]>([]);
   const [allMaps, setAllMaps] = useState<MapData[]>([]);
@@ -60,6 +64,7 @@ const MesaPage: React.FC = () => {
   const [activeMap, setActiveMap] = useState<MapData | null>(null);
   const [combatants, setCombatants] = useState<any[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
+  const [notes, setNotes] = useState('');
   const [turn, setTurn] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -77,6 +82,7 @@ const MesaPage: React.FC = () => {
         const sessionData = docSnap.data();
         setCombatants(sessionData.combatants || []);
         setInventory(sessionData.partyInventory || []);
+        setNotes(sessionData.notes || '');
         setTurn(sessionData.turn || 0);
 
         if (sessionData.activeMapId && typeof sessionData.activeMapId === 'string') {
@@ -89,7 +95,7 @@ const MesaPage: React.FC = () => {
           setActiveMap(null);
         }
       } else {
-        setDoc(mesaStateRef, { combatants: [], partyInventory: [], turn: 0, activeMapId: null });
+        setDoc(mesaStateRef, { combatants: [], partyInventory: [], notes: '', turn: 0, activeMapId: null });
       }
       setLoading(false);
     }, (error) => {
@@ -122,6 +128,11 @@ const MesaPage: React.FC = () => {
   }, [currentUser]);
 
   const mesaStateRef = doc(db, 'mesaState', 'active');
+
+  const handleNotesChange = async (newNotes: string) => {
+    setNotes(newNotes);
+    await updateDoc(mesaStateRef, { notes: newNotes });
+  };
 
   const handleAddCharacterToCombat = async (character: CharacterData) => {
     const newCombatant = { ...character, id: character.id, initiative: 0, isActive: combatants.length === 0, type: 'player' };
@@ -220,8 +231,10 @@ const MesaPage: React.FC = () => {
         <MapWidget map={activeMap} onMapClick={openMapDetailsModal} />
         <CombatTrackerWidget combatants={combatants} onCombatantClick={openEditCombatantModal} />
         <InventoryWidget items={inventory} onItemClick={handleRemoveItemFromInventory} />
+        <NotesWidget notes={notes} onNotesChange={handleNotesChange} />
       </div>
       <Toolbar
+        isOpen={isToolbarOpen}
         onAddCharacter={openAddCharacterModal}
         onAddCreature={openAddCreatureModal}
         onNextTurn={handleNextTurn}
@@ -287,39 +300,6 @@ const ConfirmationPrompt = ({ message, onConfirm, onCancel }: { message: string,
   </div>
 );
 
-const CharacterDetails = ({ character }: { character: CharacterData }) => {
-  return (
-    <div className="character-details-container">
-      {character.imageUrl && (
-        <div className="character-details-header">
-          <img 
-            src={convertGoogleDriveLink(character.imageUrl)} 
-            alt={character.name} 
-            className="character-details-avatar"
-          />
-          <div className="character-details-overlay">
-            <div className="character-details-nameplate">
-              <h1>{character.name}</h1>
-              <p>{character.class}</p>
-            </div>
-          </div>
-        </div>
-      )}
-      {character.attributes ? (
-        <div className="character-details-grid">
-          {Object.entries(character.attributes).map(([attr, value]) => (
-            <div key={attr} className="attribute-item">
-              <span className="attribute-name">{attr.substring(0, 3).toUpperCase()}</span>
-              <span className="attribute-value">{value.score}</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p style={{ padding: '2rem' }}>Atributos não cadastrados para este personagem.</p>
-      )}
-    </div>
-  );
-};
 
 const CreatureDetails = ({ creature }: { creature: CreatureData }) => (
   <div className="character-details-container">
