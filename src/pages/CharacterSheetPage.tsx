@@ -29,6 +29,7 @@ interface CharacterSheetData {
     charisma: Attribute | number;
   };
   inventory: string[];
+  equipment: string[]; // Novo campo para equipamentos
   abilities: string[];
   spells: string[];
   ownerId: string;
@@ -52,7 +53,9 @@ const CharacterSheetPage: React.FC = () => {
   const [abilitiesDetails, setAbilitiesDetails] = useState<DetailItem[]>([]);
   const [spellsDetails, setSpellsDetails] = useState<DetailItem[]>([]);
   const [inventoryDetails, setInventoryDetails] = useState<DetailItem[]>([]);
+  const [equipmentDetails, setEquipmentDetails] = useState<DetailItem[]>([]); // Novo estado para equipamentos
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('main'); // Estado para a aba ativa
 
   useEffect(() => {
     const fetchSheetData = async () => {
@@ -81,6 +84,7 @@ const CharacterSheetPage: React.FC = () => {
           setAbilitiesDetails(await fetchDetails('spellsAndAbilities', data.abilities));
           setSpellsDetails(await fetchDetails('spellsAndAbilities', data.spells));
           setInventoryDetails(await fetchDetails('items', data.inventory));
+          setEquipmentDetails(await fetchDetails('items', data.equipment)); // Busca detalhes dos equipamentos
         } else {
           console.error("No such document!");
         }
@@ -158,9 +162,28 @@ const CharacterSheetPage: React.FC = () => {
         </div>
       </header>
 
+      {/* Controles das Abas */}
+      <div className="sheet-tabs">
+        <button 
+          className={`tab-button ${activeTab === 'main' ? 'active' : ''}`} 
+          onClick={() => setActiveTab('main')}
+        >
+          Principal
+        </button>
+        <button 
+          className={`tab-button ${activeTab === 'details' ? 'active' : ''}`} 
+          onClick={() => setActiveTab('details')}
+        >
+          Detalhes
+        </button>
+      </div>
+
+      {/* Conteúdo das Abas */}
       <div className="sheet-content-grid">
-        <div className="details-card">
-          <h2 className="details-card-title">Atributos</h2>
+        {activeTab === 'main' && (
+          <>
+            <div className="details-card">
+              <h2 className="details-card-title">Atributos</h2>
           <ul className="attributes-list">
             {Object.entries(sheetData.attributes).map(([key, value]) => {
               const { score, bonusDisplay } = getAttributeDisplay(value);
@@ -213,34 +236,6 @@ const CharacterSheetPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="details-card sheet-details-full-width">
-          <h2 className="details-card-title">Detalhes do Personagem</h2>
-          {sheetData.history && (
-            <>
-              <h3>História</h3>
-              <p>{renderSafe(sheetData.history)}</p>
-            </>
-          )}
-          {sheetData.appearance && (
-            <>
-              <h3>Aparência</h3>
-              <p>{renderSafe(sheetData.appearance)}</p>
-            </>
-          )}
-          {sheetData.personality && (
-            <>
-              <h3>Personalidade</h3>
-              <p>{renderSafe(sheetData.personality)}</p>
-            </>
-          )}
-          {sheetData.notes && (
-            <>
-              <h3>Anotações</h3>
-              <p>{renderSafe(sheetData.notes)}</p>
-            </>
-          )}
-        </div>
-
         <div className="details-card">
           <h2 className="details-card-title">Habilidades e Talentos</h2>
           <div className="character-list">
@@ -279,6 +274,51 @@ const CharacterSheetPage: React.FC = () => {
             ))}
           </div>
         </div>
+
+        <div className="details-card">
+          <h2 className="details-card-title">Equipamentos</h2>
+          <div className="character-list">
+            {equipmentDetails.map(item => (
+              <div key={item.id} className="character-card" style={{ backgroundImage: item.imageUrl ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(item.imageUrl)})` : 'none' }}>
+                <div className="character-card-info">
+                  <Link to={`/item/${item.id}`} className="character-card-link"><h3>{item.name}</h3></Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+          </>
+        )}
+
+        {activeTab === 'details' && (
+          <div className="details-card sheet-details-full-width">
+            <h2 className="details-card-title">Detalhes do Personagem</h2>
+            {sheetData.history && (
+              <>
+                <h3>História</h3>
+                <p>{renderSafe(sheetData.history)}</p>
+              </>
+            )}
+            {sheetData.appearance && (
+              <>
+                <h3>Aparência</h3>
+                <p>{renderSafe(sheetData.appearance)}</p>
+              </>
+            )}
+            {sheetData.personality && (
+              <>
+                <h3>Personalidade</h3>
+                <p>{renderSafe(sheetData.personality)}</p>
+              </>
+            )}
+            {sheetData.notes && (
+              <>
+                <h3>Anotações</h3>
+                <p>{renderSafe(sheetData.notes)}</p>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

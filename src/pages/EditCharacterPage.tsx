@@ -27,6 +27,7 @@ const EditCharacterPage: React.FC = () => {
     charisma: { score: 10, bonus: 0 },
   });
   const [inventory, setInventory] = useState<string[]>([]);
+  const [equipment, setEquipment] = useState<string[]>([]); // Estado para equipamentos
   const [abilities, setAbilities] = useState<string[]>([]);
   const [spells, setSpells] = useState<string[]>([]);
   const [history, setHistory] = useState('');
@@ -71,7 +72,8 @@ const EditCharacterPage: React.FC = () => {
           }
           setAttributes(newAttributes);
 
-          setInventory(data.inventory);
+          setInventory(data.inventory || []);
+          setEquipment(data.equipment || []); // Carrega os equipamentos
           setAbilities(data.abilities);
           setSpells(data.spells);
           setHistory(data.history || '');
@@ -126,6 +128,7 @@ const EditCharacterPage: React.FC = () => {
         gold,
         attributes,
         inventory,
+        equipment, // Adiciona equipamentos ao objeto de atualização
         abilities,
         spells,
         imageUrl: finalImageUrl,
@@ -270,6 +273,11 @@ const EditCharacterPage: React.FC = () => {
         <ItemSelector
           selectedIds={inventory}
           onChange={setInventory}
+        />
+        <ItemSelector
+          selectedIds={equipment}
+          onChange={setEquipment}
+          label="Equipamentos" // Label customizada
         />
         <div>
           <label htmlFor="history">História</label>

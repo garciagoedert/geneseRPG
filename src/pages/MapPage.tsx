@@ -77,6 +77,7 @@ const AssetToken: React.FC<AssetTokenProps> = ({ asset, onSelect, onTransform, o
       height={asset.height}
       rotation={asset.rotation || 0}
       draggable
+      name="asset-image"
       onClick={onSelect}
       onTap={onSelect}
       ref={shapeRef}
@@ -105,7 +106,8 @@ const MapPage: React.FC = () => {
   const [lineColor, setLineColor] = useState('#ffffff');
   const [measurePoints, setMeasurePoints] = useState<number[]>([]);
   const [measureDistance, setMeasureDistance] = useState<string | null>(null);
-  const [selectedId, selectShape] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectionRect, setSelectionRect] = useState({ x1: 0, y1: 0, x2: 0, y2: 0, visible: false });
   const [backgroundColor, setBackgroundColor] = useState('#1a1f2c');
   const [isCreatureSelectorOpen, setCreatureSelectorOpen] = useState(false);
   const [isPlayerSelectorOpen, setPlayerSelectorOpen] = useState(false);
@@ -133,15 +135,11 @@ const MapPage: React.FC = () => {
       const stage = stageRef.current;
       if (!stage) return;
 
-      const selectedNode = stage.findOne('#' + selectedId);
-      if (selectedNode) {
-        trRef.current.nodes([selectedNode]);
-      } else {
-        trRef.current.nodes([]);
-      }
+      const selectedNodes = selectedIds.map(id => stage.findOne('#' + id)).filter((node): node is Konva.Node => node !== null);
+      trRef.current.nodes(selectedNodes);
       trRef.current.getLayer()?.batchDraw();
     }
-  }, [selectedId]);
+  }, [selectedIds]);
 
   const saveStateToHistory = () => {
     const currentState = { layers, paintedCells };
@@ -233,7 +231,7 @@ const MapPage: React.FC = () => {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        selectShape(null);
+        setSelectedIds([]);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -244,16 +242,22 @@ const MapPage: React.FC = () => {
     };
   }, []);
 
-
-  const checkDeselect = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
-    // Deseleciona ao clicar no palco
+  const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    // 1. Deselecionar se clicar no palco
     const clickedOnEmpty = e.target === e.target.getStage();
     if (clickedOnEmpty) {
-      selectShape(null);
+      setSelectedIds([]);
     }
-  };
 
-  const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    // 2. Iniciar seleção de arrastar se clicar no palco
+    if (e.target === e.target.getStage()) {
+      const pos = e.target.getStage()?.getPointerPosition();
+      if (pos) {
+        setSelectionRect({ x1: pos.x, y1: pos.y, x2: pos.x, y2: pos.y, visible: true });
+      }
+      return;
+    }
+
     if (drawingMode === 'fog') {
       setDrawing(true);
       const stage = e.target.getStage();
@@ -332,6 +336,19 @@ const MapPage: React.FC = () => {
   };
   
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    // Atualizar retângulo de seleção
+    if (selectionRect.visible) {
+      const pos = e.target.getStage()?.getPointerPosition();
+      if (pos) {
+        setSelectionRect({
+          ...selectionRect,
+          x2: pos.x,
+          y2: pos.y,
+        });
+      }
+      return;
+    }
+
     if (!drawing) return;
 
     if (drawingMode === 'paint') {
@@ -423,6 +440,26 @@ const MapPage: React.FC = () => {
   };
 
   const handleMouseUp = () => {
+    // Finalizar seleção de arrastar
+    if (selectionRect.visible) {
+      setSelectionRect({ ...selectionRect, visible: false });
+      const stage = stageRef.current;
+      if (!stage) return;
+
+      const box = {
+        x: Math.min(selectionRect.x1, selectionRect.x2),
+        y: Math.min(selectionRect.y1, selectionRect.y2),
+        width: Math.abs(selectionRect.x1 - selectionRect.x2),
+        height: Math.abs(selectionRect.y1 - selectionRect.y2),
+      };
+      
+      const allNodes = stage.find('.token-group, .asset-image');
+      const selected = allNodes.filter((node) =>
+        Konva.Util.haveIntersection(box, node.getClientRect())
+      );
+      setSelectedIds(selected.map(node => node.id()));
+    }
+
     if (drawing) {
       if (drawingMode === 'line' || drawingMode === 'free') {
         saveStateToHistory();
@@ -672,7 +709,7 @@ const MapPage: React.FC = () => {
     if (window.confirm('Tem certeza que deseja limpar todo o mapa? Esta ação não pode ser desfeita.')) {
       setLayers(layers.map(l => ({ ...l, tokens: [], assets: [], lines: [], shapes: [] })));
       setPaintedCells([]);
-      selectShape(null);
+      setSelectedIds([]);
     }
   };
 
@@ -747,21 +784,11 @@ const MapPage: React.FC = () => {
         ref={stageRef}
         className="map-stage"
         draggable={drawingMode === 'select'} // Só permite arrastar no modo de seleção
-        onMouseDown={(e) => { checkDeselect(e); handleMouseDown(e); }}
+        onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onTouchStart={checkDeselect}
       >
         <Layer>
-          {/* Fundo clicável para deselecionar */}
-          <Rect
-            x={-10000}
-            y={-10000}
-            width={20000}
-            height={20000}
-            onClick={() => selectShape(null)}
-            onTap={() => selectShape(null)}
-          />
           {/* Células Pintadas */}
           {paintedCells.map((cell, i) => (
             <Rect
@@ -791,12 +818,12 @@ const MapPage: React.FC = () => {
                 <Line
                   key={line.id}
                   points={line.points}
-                  stroke={selectedId === line.id ? 'cyan' : line.color || 'white'}
+                  stroke={selectedIds.includes(line.id) ? 'cyan' : line.color || 'white'}
                   strokeWidth={5}
                   tension={0.5}
                   lineCap="round"
-                  onClick={() => { if (drawingMode === 'select') selectShape(line.id); }}
-                  onTap={() => { if (drawingMode === 'select') selectShape(line.id); }}
+                  onClick={() => { if (drawingMode === 'select') setSelectedIds([line.id]); }}
+                  onTap={() => { if (drawingMode === 'select') setSelectedIds([line.id]); }}
                 />
               ))}
               {/* Assets */}
@@ -804,7 +831,7 @@ const MapPage: React.FC = () => {
                 <AssetToken
                   key={asset.id}
                   asset={asset}
-                  onSelect={() => { if (drawingMode === 'select') selectShape(asset.id); }}
+                  onSelect={() => { if (drawingMode === 'select') setSelectedIds([asset.id]); }}
                   onDblClick={() => {
                     setEditingAsset(asset);
                     setAssetEditModalOpen(true);
@@ -845,8 +872,8 @@ const MapPage: React.FC = () => {
                 <Token
                   key={token.id}
                   token={token}
-                  isSelected={selectedId === token.id}
-                  onSelect={() => selectShape(token.id)}
+                  isSelected={selectedIds.includes(token.id)}
+                  onSelect={() => setSelectedIds([token.id])}
                   onDragEnd={(e) => {
                     const id = e.target.id();
                     setLayers(layers.map(l => ({
@@ -881,6 +908,14 @@ const MapPage: React.FC = () => {
             )
           )}
           <Transformer ref={trRef} />
+          <Rect
+            x={Math.min(selectionRect.x1, selectionRect.x2)}
+            y={Math.min(selectionRect.y1, selectionRect.y2)}
+            width={Math.abs(selectionRect.x1 - selectionRect.x2)}
+            height={Math.abs(selectionRect.y1 - selectionRect.y2)}
+            fill="rgba(0, 160, 255, 0.3)"
+            visible={selectionRect.visible}
+          />
         </Layer>
         {isFogEnabled && (
           <Layer listening={false}>
@@ -998,18 +1033,18 @@ const MapPage: React.FC = () => {
           <button onClick={() => setDrawingMode('select')} className={drawingMode === 'select' ? 'active' : ''}>Selecionar</button>
           <button
             onClick={() => {
-              if (selectedId) {
+              if (selectedIds.length > 0) {
                 setLayers(layers.map(l => ({
                   ...l,
-                  tokens: l.tokens.filter(t => t.id !== selectedId),
-                  assets: l.assets.filter(a => a.id !== selectedId),
-                  lines: l.lines.filter(line => line.id !== selectedId),
-                  shapes: l.shapes.filter(s => s.id !== selectedId),
+                  tokens: l.tokens.filter(t => !selectedIds.includes(t.id)),
+                  assets: l.assets.filter(a => !selectedIds.includes(a.id)),
+                  lines: l.lines.filter(line => !selectedIds.includes(line.id)),
+                  shapes: l.shapes.filter(s => !selectedIds.includes(s.id)),
                 })));
-                selectShape(null);
+                setSelectedIds([]);
               }
             }}
-            disabled={!selectedId}
+            disabled={selectedIds.length === 0}
           >
             Deletar
           </button>

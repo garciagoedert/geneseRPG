@@ -11,9 +11,10 @@ interface Item {
 interface ItemSelectorProps {
   selectedIds: string[];
   onChange: (newSelectedIds: string[]) => void;
+  label?: string; // Adiciona a propriedade label opcional
 }
 
-const ItemSelector: React.FC<ItemSelectorProps> = ({ selectedIds, onChange }) => {
+const ItemSelector: React.FC<ItemSelectorProps> = ({ selectedIds, onChange, label = 'Inventário' }) => {
   const [allItems, setAllItems] = useState<Item[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -66,7 +67,7 @@ const ItemSelector: React.FC<ItemSelectorProps> = ({ selectedIds, onChange }) =>
   return (
     <div className="spell-selector-container">
       <fieldset>
-        <legend>Inventário</legend>
+        <legend>{label}</legend>
         <div className="selected-items">
           {selectedItemsDisplay.map(item => (
             <div key={item.id} className="selected-item">

@@ -33,6 +33,7 @@ const Token: React.FC<TokenProps> = ({ token, isSelected, onSelect, onDragEnd, o
       {token.image && image ? (
         <Group
           id={token.id}
+          name="token-group"
           x={token.x}
           y={token.y}
           draggable
@@ -79,6 +80,7 @@ const Token: React.FC<TokenProps> = ({ token, isSelected, onSelect, onDragEnd, o
       ) : (
         <Group
           id={token.id}
+          name="token-group"
           x={token.x}
           y={token.y}
           draggable
