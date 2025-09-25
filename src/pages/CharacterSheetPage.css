@@ -93,8 +93,8 @@
 /* Novos estilos para a seção de Recursos */
 .resources-grid {
   display: flex;
-  justify-content: space-between; /* Alterado para space-between para melhor controle com gap */
-  gap: 1rem; /* Adiciona espaçamento entre os cards */
+  justify-content: space-between;
+  gap: 1rem;
   padding: 1rem 0;
 }
 
@@ -102,7 +102,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Centraliza o conteúdo verticalmente */
+  justify-content: center;
   gap: 0.5rem;
   padding: 1.5rem 1rem;
   border-radius: 10px;
@@ -110,16 +110,16 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   flex: 1;
   text-align: center;
-  background-size: 120%; /* Aplica o zoom na imagem de fundo */
+  background-size: 120%;
   background-position: center;
   position: relative;
   color: white;
-  overflow: hidden; /* Esconde as partes da imagem que excedem o card */
-  transition: background-size 0.4s ease-in-out; /* Adiciona transição suave */
+  overflow: hidden;
+  transition: background-size 0.4s ease-in-out;
 }
 
 .resource-item:hover {
-  background-size: 130%; /* Aumenta o zoom no hover para um efeito dinâmico */
+  background-size: 130%;
 }
 
 .resource-content {
@@ -127,25 +127,25 @@
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  z-index: 1; /* Garante que o conteúdo fique acima da sobreposição */
+  z-index: 1;
 }
 
 .resource-icon {
-  font-size: 2.5rem; /* Aumenta o ícone */
-  text-shadow: 0 0 10px var(--primary-color); /* Adiciona um brilho sutil */
+  font-size: 2.5rem;
+  text-shadow: 0 0 10px var(--primary-color);
 }
 
 .resource-value {
   font-family: 'Cinzel', serif;
   font-size: 2rem;
   font-weight: bold;
-  color: #fff; /* Alterado para branco para melhor contraste */
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.8); /* Sombra para legibilidade */
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
 }
 
 .resource-label {
   font-size: 0.9rem;
-  color: #fff; /* Alterado para branco */
+  color: #fff;
   text-transform: uppercase;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
 }
@@ -184,6 +184,73 @@
   box-shadow: 0 0 10px var(--primary-color);
 }
 
+/* Estilos para Reposicionamento da Imagem */
+.details-hero-image.repositioning {
+  cursor: grab;
+}
+
+.details-hero-image.repositioning:active {
+  cursor: grabbing;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.reposition-button {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  cursor: pointer;
+  font-size: 1rem;
+  text-decoration: none;
+  display: inline-block;
+  transition: background-color 0.3s;
+}
+
+.reposition-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.reposition-controls {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1rem;
+  z-index: 10;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
+
+.save-button, .cancel-button {
+  background-color: transparent;
+  color: white;
+  border: 1px solid white;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  transition: background-color 0.3s;
+}
+
+.save-button {
+  background-color: var(--primary-color);
+  color: #121212;
+  border: none;
+}
+
+.cancel-button {
+  background-color: #555;
+  border: none;
+}
 
 /* Responsividade */
 @media (max-width: 768px) {
