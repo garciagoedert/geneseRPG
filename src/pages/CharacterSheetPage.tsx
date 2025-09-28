@@ -25,6 +25,10 @@ interface CharacterSheetData {
   hp: number;
   mp: number;
   gold: number;
+  silver: number;
+  inspiration: number;
+  perception: number;
+  armorClass: number;
   attributes: {
     strength: Attribute | number;
     dexterity: Attribute | number;
@@ -234,6 +238,34 @@ const CharacterSheetPage: React.FC = () => {
                     <span className="resource-icon">💰</span>
                     <span className="resource-value">{renderSafe(sheetData.gold)}</span>
                     <span className="resource-label">Ouro</span>
+                  </div>
+                </div>
+                <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/KwnQdw7.png)` }}>
+                  <div className="resource-content">
+                    <span className="resource-icon">🪙</span>
+                    <span className="resource-value">{renderSafe(sheetData.silver)}</span>
+                    <span className="resource-label">Prata</span>
+                  </div>
+                </div>
+                <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/Q9jY8bM.png)` }}>
+                  <div className="resource-content">
+                    <span className="resource-icon">💡</span>
+                    <span className="resource-value">{renderSafe(sheetData.inspiration)}</span>
+                    <span className="resource-label">Inspiração</span>
+                  </div>
+                </div>
+                <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/J3J9H1M.png)` }}>
+                  <div className="resource-content">
+                    <span className="resource-icon">👁️</span>
+                    <span className="resource-value">{renderSafe(sheetData.perception)}</span>
+                    <span className="resource-label">Percepção</span>
+                  </div>
+                </div>
+                <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/p7x1Z3E.png)` }}>
+                  <div className="resource-content">
+                    <span className="resource-icon">🛡️</span>
+                    <span className="resource-value">{renderSafe(sheetData.armorClass)}</span>
+                    <span className="resource-label">CA</span>
                   </div>
                 </div>
               </div>

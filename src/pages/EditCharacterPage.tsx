@@ -19,6 +19,10 @@ const EditCharacterPage: React.FC = () => {
   const [hp, setHp] = useState(10);
   const [mp, setMp] = useState(10);
   const [gold, setGold] = useState(0);
+  const [silver, setSilver] = useState(0);
+  const [inspiration, setInspiration] = useState(0);
+  const [perception, setPerception] = useState(0);
+  const [armorClass, setArmorClass] = useState(0);
   const [attributes, setAttributes] = useState({
     strength: { score: 10, bonus: 0, skills: { atletismo: 0, briga: 0, forcaDeVontade: 0 } },
     dexterity: { score: 10, bonus: 0, skills: { acrobacia: 0, furtividade: 0, performance: 0 } },
@@ -58,6 +62,10 @@ const EditCharacterPage: React.FC = () => {
           setHp(data.hp || 10);
           setMp(data.mp || 10);
           setGold(data.gold || 0);
+          setSilver(data.silver || 0);
+          setInspiration(data.inspiration || 0);
+          setPerception(data.perception || 0);
+          setArmorClass(data.armorClass || 0);
 
           // Lógica para retrocompatibilidade de atributos
           const loadedAttributes = JSON.parse(JSON.stringify(attributes)); // Deep copy
@@ -142,6 +150,10 @@ const EditCharacterPage: React.FC = () => {
         hp,
         mp,
         gold,
+        silver,
+        inspiration,
+        perception,
+        armorClass,
         attributes,
         inventory,
         equipment, // Adiciona equipamentos ao objeto de atualização
@@ -247,6 +259,46 @@ const EditCharacterPage: React.FC = () => {
             id="gold"
             value={gold}
             onChange={(e) => setGold(parseInt(e.target.value, 10) || 0)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="silver">Prata</label>
+          <input
+            type="number"
+            id="silver"
+            value={silver}
+            onChange={(e) => setSilver(parseInt(e.target.value, 10) || 0)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="inspiration">Inspiração</label>
+          <input
+            type="number"
+            id="inspiration"
+            value={inspiration}
+            onChange={(e) => setInspiration(parseInt(e.target.value, 10) || 0)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="perception">Percepção</label>
+          <input
+            type="number"
+            id="perception"
+            value={perception}
+            onChange={(e) => setPerception(parseInt(e.target.value, 10) || 0)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="armorClass">Classe de Armadura (CA)</label>
+          <input
+            type="number"
+            id="armorClass"
+            value={armorClass}
+            onChange={(e) => setArmorClass(parseInt(e.target.value, 10) || 0)}
             required
           />
         </div>
