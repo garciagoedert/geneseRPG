@@ -9,6 +9,13 @@ import './DetailsPage.css'; // Usando o novo estilo padrão
 interface CreatureData {
   name: string;
   description: string;
+  hp: number;
+  mp: number;
+  gold: number;
+  silver: number;
+  inspiration: number;
+  perception: number;
+  armorClass: number;
   stats: string;
   imageUrl?: string;
 }
@@ -72,6 +79,61 @@ const CreatureDetailPage: React.FC = () => {
       <div className="details-card">
         <h2 className="details-card-title">Descrição</h2>
         <pre className="details-pre">{creatureData.description}</pre>
+      </div>
+
+      <div className="details-card">
+        <h2 className="details-card-title">Recursos</h2>
+        <div className="resources-grid">
+          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/rnwnDxF.png)` }}>
+            <div className="resource-content">
+              <span className="resource-icon">❤️</span>
+              <span className="resource-value">{creatureData.hp}</span>
+              <span className="resource-label">HP</span>
+            </div>
+          </div>
+          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/wAJ7AOg.png)` }}>
+            <div className="resource-content">
+              <span className="resource-icon">💧</span>
+              <span className="resource-value">{creatureData.mp}</span>
+              <span className="resource-label">MP</span>
+            </div>
+          </div>
+          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/KwnQdw7.png)` }}>
+            <div className="resource-content">
+              <span className="resource-icon">💰</span>
+              <span className="resource-value">{creatureData.gold}</span>
+              <span className="resource-label">Ouro</span>
+            </div>
+          </div>
+          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/KwnQdw7.png)` }}>
+            <div className="resource-content">
+              <span className="resource-icon">🪙</span>
+              <span className="resource-value">{creatureData.silver}</span>
+              <span className="resource-label">Prata</span>
+            </div>
+          </div>
+          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/Q9jY8bM.png)` }}>
+            <div className="resource-content">
+              <span className="resource-icon">💡</span>
+              <span className="resource-value">{creatureData.inspiration}</span>
+              <span className="resource-label">Inspiração</span>
+            </div>
+          </div>
+          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/J3J9H1M.png)` }}>
+            <div className="resource-content">
+              <span className="resource-icon">👁️</span>
+              <span className="resource-value">{creatureData.perception}</span>
+              <span className="resource-label">Percepção</span>
+            </div>
+          </div>
+          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/p7x1Z3E.png)` }}>
+            <div className="resource-content">
+              <span className="resource-icon">🛡️</span>
+              <span className="resource-value">{creatureData.armorClass}</span>
+              <span className="resource-label">CA</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="details-card">
