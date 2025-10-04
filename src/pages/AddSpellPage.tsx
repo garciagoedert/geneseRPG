@@ -11,6 +11,7 @@ const AddSpellPage: React.FC = () => {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [type, setType] = useState<'magia' | 'habilidade'>('magia');
+  const [actionType, setActionType] = useState('Ação');
   const [className, setClassName] = useState('');
   const [level, setLevel] = useState(0);
   const [description, setDescription] = useState('');
@@ -33,6 +34,7 @@ const AddSpellPage: React.FC = () => {
       await addDoc(collection(db, 'spellsAndAbilities'), {
         name,
         type,
+        actionType,
         className,
         level,
         description,
@@ -79,6 +81,15 @@ const AddSpellPage: React.FC = () => {
           <select id="type" value={type} onChange={(e) => setType(e.target.value as 'magia' | 'habilidade')}>
             <option value="magia">Magia</option>
             <option value="habilidade">Habilidade</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="actionType">Tipo de Ação</label>
+          <select id="actionType" value={actionType} onChange={(e) => setActionType(e.target.value)}>
+            <option value="Ação">Ação</option>
+            <option value="Ação bônus">Ação bônus</option>
+            <option value="Reação">Reação</option>
+            <option value="Ritual">Ritual</option>
           </select>
         </div>
         <div>
