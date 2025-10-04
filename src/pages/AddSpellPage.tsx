@@ -16,6 +16,7 @@ const AddSpellPage: React.FC = () => {
   const [level, setLevel] = useState(0);
   const [description, setDescription] = useState('');
   const [range, setRange] = useState('');
+  const [duration, setDuration] = useState('');
   const [visibleToPlayers, setVisibleToPlayers] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +41,7 @@ const AddSpellPage: React.FC = () => {
         level,
         description,
         range,
+        duration,
         visibleToPlayers,
         createdAt: new Date(),
         imageUrl: finalImageUrl,
@@ -131,6 +133,16 @@ const AddSpellPage: React.FC = () => {
             value={range}
             onChange={(e) => setRange(e.target.value)}
             placeholder="Ex: 30 metros, Toque"
+          />
+        </div>
+        <div>
+          <label htmlFor="duration">Duração</label>
+          <input
+            type="text"
+            id="duration"
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+            placeholder="Ex: 1 minuto, Instantânea"
           />
         </div>
         <div className="checkbox-container">

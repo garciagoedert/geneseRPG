@@ -17,6 +17,7 @@ const EditSpellPage: React.FC = () => {
   const [level, setLevel] = useState(0);
   const [description, setDescription] = useState('');
   const [range, setRange] = useState('');
+  const [duration, setDuration] = useState('');
   const [visibleToPlayers, setVisibleToPlayers] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +38,7 @@ const EditSpellPage: React.FC = () => {
           setLevel(data.level);
           setDescription(data.description);
           setRange(data.range || '');
+          setDuration(data.duration || '');
           setVisibleToPlayers(data.visibleToPlayers);
           setImageUrl(data.imageUrl || '');
         } else {
@@ -72,6 +74,7 @@ const EditSpellPage: React.FC = () => {
         level,
         description,
         range,
+        duration,
         visibleToPlayers,
         imageUrl: finalImageUrl,
       });
@@ -167,6 +170,16 @@ const EditSpellPage: React.FC = () => {
             value={range}
             onChange={(e) => setRange(e.target.value)}
             placeholder="Ex: 30 metros, Toque"
+          />
+        </div>
+        <div>
+          <label htmlFor="duration">Duração</label>
+          <input
+            type="text"
+            id="duration"
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+            placeholder="Ex: 1 minuto, Instantânea"
           />
         </div>
         <div className="checkbox-container">
