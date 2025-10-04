@@ -12,6 +12,7 @@ interface Spell {
   name: string;
   type: 'magia' | 'habilidade';
   level: number;
+  className: string;
   description: string;
   visibleToPlayers: boolean;
   imageUrl?: string;
@@ -40,19 +41,35 @@ const SpellsPage: React.FC = () => {
 
   const fetchSpells = async () => {
     try {
-      let spellsQuery = query(collection(db, 'spellsAndAbilities'));
-      if (currentUser?.role !== 'gm') {
-        spellsQuery = query(collection(db, 'spellsAndAbilities'), where('visibleToPlayers', '==', true));
+      let finalSpellList: Spell[] = [];
+
+      if (currentUser && currentUser.role !== 'gm') {
+        const characterQuery = query(collection(db, 'characterSheets'), where('ownerId', '==', currentUser.uid));
+        const characterSnapshot = await getDocs(characterQuery);
+        const playerClass = characterSnapshot.empty ? null : characterSnapshot.docs[0].data().class;
+
+        // Fetch all visible spells and filter on the client-side
+        const allVisibleSpellsQuery = query(
+          collection(db, 'spellsAndAbilities'),
+          where('visibleToPlayers', '==', true)
+        );
+        const allVisibleSpellsSnapshot = await getDocs(allVisibleSpellsQuery);
+        const allVisibleSpells = allVisibleSpellsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Spell));
+        
+        // Filter for spells that are generic (no class) or match the player's class, case-insensitively and trimming whitespace
+        finalSpellList = allVisibleSpells.filter(spell => 
+          !spell.className || (playerClass && spell.className.trim().toLowerCase() === playerClass.trim().toLowerCase())
+        );
+
+      } else {
+        // GM sees all spells
+        const gmQuery = query(collection(db, 'spellsAndAbilities'));
+        const querySnapshot = await getDocs(gmQuery);
+        finalSpellList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Spell));
       }
       
-      const querySnapshot = await getDocs(spellsQuery);
-      const spellList = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Spell));
-      
-      setSpells(spellList);
-      setFilteredSpells(spellList);
+      setSpells(finalSpellList);
+      setFilteredSpells(finalSpellList);
     } catch (error) {
       console.error("Erro ao buscar magias:", error);
     } finally {

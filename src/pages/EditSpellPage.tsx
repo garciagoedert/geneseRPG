@@ -12,6 +12,7 @@ const EditSpellPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [name, setName] = useState('');
   const [type, setType] = useState<'magia' | 'habilidade'>('magia');
+  const [className, setClassName] = useState('');
   const [level, setLevel] = useState(0);
   const [description, setDescription] = useState('');
   const [visibleToPlayers, setVisibleToPlayers] = useState(false);
@@ -29,6 +30,7 @@ const EditSpellPage: React.FC = () => {
           const data = docSnap.data();
           setName(data.name);
           setType(data.type);
+          setClassName(data.className || '');
           setLevel(data.level);
           setDescription(data.description);
           setVisibleToPlayers(data.visibleToPlayers);
@@ -61,6 +63,7 @@ const EditSpellPage: React.FC = () => {
       await updateDoc(docRef, {
         name,
         type,
+        className,
         level,
         description,
         visibleToPlayers,
@@ -111,6 +114,16 @@ const EditSpellPage: React.FC = () => {
             <option value="magia">Magia</option>
             <option value="habilidade">Habilidade</option>
           </select>
+        </div>
+        <div>
+          <label htmlFor="className">Classe</label>
+          <input
+            type="text"
+            id="className"
+            value={className}
+            onChange={(e) => setClassName(e.target.value)}
+            placeholder="Guerreiro, Mago, etc."
+          />
         </div>
         <div>
           <label htmlFor="level">Nível</label>

@@ -11,6 +11,7 @@ const AddSpellPage: React.FC = () => {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [type, setType] = useState<'magia' | 'habilidade'>('magia');
+  const [className, setClassName] = useState('');
   const [level, setLevel] = useState(0);
   const [description, setDescription] = useState('');
   const [visibleToPlayers, setVisibleToPlayers] = useState(false);
@@ -32,6 +33,7 @@ const AddSpellPage: React.FC = () => {
       await addDoc(collection(db, 'spellsAndAbilities'), {
         name,
         type,
+        className,
         level,
         description,
         visibleToPlayers,
@@ -78,6 +80,16 @@ const AddSpellPage: React.FC = () => {
             <option value="magia">Magia</option>
             <option value="habilidade">Habilidade</option>
           </select>
+        </div>
+        <div>
+          <label htmlFor="className">Classe</label>
+          <input
+            type="text"
+            id="className"
+            value={className}
+            onChange={(e) => setClassName(e.target.value)}
+            placeholder="Guerreiro, Mago, etc."
+          />
         </div>
         <div>
           <label htmlFor="level">Nível</label>
