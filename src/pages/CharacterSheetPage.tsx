@@ -55,6 +55,7 @@ interface CharacterSheetData {
 interface DetailItem {
   id: string;
   name: string;
+  mpCost?: number;
   imageUrl?: string;
 }
 
@@ -88,7 +89,7 @@ const CharacterSheetPage: React.FC = () => {
             if (!ids || ids.length === 0) return [];
             const detailsQuery = query(collection(db, collectionName), where('__name__', 'in', ids));
             const snapshot = await getDocs(detailsQuery);
-            return snapshot.docs.map(d => ({ id: d.id, name: d.data().name, imageUrl: d.data().imageUrl }));
+            return snapshot.docs.map(d => ({ id: d.id, name: d.data().name, mpCost: d.data().mpCost, imageUrl: d.data().imageUrl }));
           };
 
           setAbilitiesDetails(await fetchDetails('spellsAndAbilities', data.abilities));
@@ -306,7 +307,10 @@ const CharacterSheetPage: React.FC = () => {
                 {abilitiesDetails.map(ability => (
                   <div key={ability.id} className="character-card" style={{ backgroundImage: ability.imageUrl ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(ability.imageUrl)})` : 'none' }}>
                     <div className="character-card-info">
-                      <Link to={`/spell/${ability.id}`} className="character-card-link"><h3>{ability.name}</h3></Link>
+                      <Link to={`/spell/${ability.id}`} className="character-card-link">
+                        <h3>{ability.name}</h3>
+                        {ability.mpCost !== undefined && <p>Custo de MP: {ability.mpCost}</p>}
+                      </Link>
                     </div>
                   </div>
                 ))}
@@ -319,7 +323,10 @@ const CharacterSheetPage: React.FC = () => {
                 {spellsDetails.map(spell => (
                   <div key={spell.id} className="character-card" style={{ backgroundImage: spell.imageUrl ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${convertGoogleDriveLink(spell.imageUrl)})` : 'none' }}>
                     <div className="character-card-info">
-                      <Link to={`/spell/${spell.id}`} className="character-card-link"><h3>{spell.name}</h3></Link>
+                      <Link to={`/spell/${spell.id}`} className="character-card-link">
+                        <h3>{spell.name}</h3>
+                        {spell.mpCost !== undefined && <p>Custo de MP: {spell.mpCost}</p>}
+                      </Link>
                     </div>
                   </div>
                 ))}

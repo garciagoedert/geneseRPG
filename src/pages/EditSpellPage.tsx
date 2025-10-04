@@ -15,6 +15,7 @@ const EditSpellPage: React.FC = () => {
   const [actionType, setActionType] = useState('Ação');
   const [className, setClassName] = useState('');
   const [level, setLevel] = useState(0);
+  const [mpCost, setMpCost] = useState(0);
   const [description, setDescription] = useState('');
   const [range, setRange] = useState('');
   const [duration, setDuration] = useState('');
@@ -41,6 +42,7 @@ const EditSpellPage: React.FC = () => {
           setActionType(data.actionType || 'Ação');
           setClassName(data.className || '');
           setLevel(data.level);
+          setMpCost(data.mpCost || 0);
           setDescription(data.description);
           setRange(data.range || '');
           setDuration(data.duration || '');
@@ -78,6 +80,7 @@ const EditSpellPage: React.FC = () => {
         actionType,
         className,
         level,
+        mpCost,
         description,
         range,
         duration,
@@ -157,6 +160,16 @@ const EditSpellPage: React.FC = () => {
             id="level"
             value={level}
             onChange={(e) => setLevel(parseInt(e.target.value, 10) || 0)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="mpCost">Custo de MP</label>
+          <input
+            type="number"
+            id="mpCost"
+            value={mpCost}
+            onChange={(e) => setMpCost(parseInt(e.target.value, 10) || 0)}
             required
           />
         </div>

@@ -12,6 +12,7 @@ interface Spell {
   name: string;
   type: 'magia' | 'habilidade';
   level: number;
+  mpCost: number;
   className: string;
   description: string;
   visibleToPlayers: boolean;
@@ -139,7 +140,7 @@ const SpellsPage: React.FC = () => {
               <div className="character-card-info">
                 <Link to={`/spell/${spell.id}`} className="character-card-link">
                   <h3>{spell.name} ({spell.type})</h3>
-                  <p>Nível: {spell.level}</p>
+                  <p>Nível: {spell.level} | Custo de MP: {spell.mpCost}</p>
                   <p>{spell.description.substring(0, 100)}...</p>
                 </Link>
               </div>

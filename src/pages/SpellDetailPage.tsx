@@ -10,6 +10,7 @@ interface SpellData {
   name: string;
   type: 'magia' | 'habilidade';
   level: number;
+  mpCost: number;
   actionType: string;
   className: string;
   description: string;
@@ -72,7 +73,7 @@ const SpellDetailPage: React.FC = () => {
         <div className="details-hero-content">
           <div>
             <h1>{spellData.name}</h1>
-            <p style={{ margin: 0, color: '#ccc' }}>{spellData.type} de Nível {spellData.level} | {spellData.actionType} | Classe: {spellData.className}</p>
+            <p style={{ margin: 0, color: '#ccc' }}>{spellData.type} de Nível {spellData.level} | Custo de MP: {spellData.mpCost} | {spellData.actionType} | Classe: {spellData.className}</p>
           </div>
           {currentUser?.role === 'gm' && (
             <Link to={`/edit-spell/${id}`} className="details-edit-button">
