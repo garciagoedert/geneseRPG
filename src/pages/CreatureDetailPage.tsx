@@ -11,7 +11,7 @@ interface CreatureData {
   description: string;
   hp: number;
   mp: number;
-  atk: number;
+  atk: string;
   ca: number;
   inc: number;
   stats: string;

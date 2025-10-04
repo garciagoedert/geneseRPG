@@ -15,7 +15,7 @@ const EditCreaturePage: React.FC = () => {
   const [stats, setStats] = useState('');
   const [hp, setHp] = useState(0);
   const [mp, setMp] = useState(0);
-  const [atk, setAtk] = useState(0);
+  const [atk, setAtk] = useState('');
   const [ca, setCa] = useState(0);
   const [inc, setInc] = useState(0);
   const [visibleToPlayers, setVisibleToPlayers] = useState(false);
@@ -36,7 +36,7 @@ const EditCreaturePage: React.FC = () => {
           setStats(data.stats);
           setHp(data.hp || 0);
           setMp(data.mp || 0);
-          setAtk(data.atk || 0);
+          setAtk(data.atk || '');
           setCa(data.ca || 0);
           setInc(data.inc || 0);
           setVisibleToPlayers(data.visibleToPlayers);
@@ -137,7 +137,7 @@ const EditCreaturePage: React.FC = () => {
           </div>
           <div className="stat-item">
             <label htmlFor="atk">ATK</label>
-            <input type="number" id="atk" value={atk} onChange={(e) => setAtk(parseInt(e.target.value, 10))} />
+            <input type="text" id="atk" value={atk} onChange={(e) => setAtk(e.target.value)} />
           </div>
           <div className="stat-item">
             <label htmlFor="ca">CA</label>
