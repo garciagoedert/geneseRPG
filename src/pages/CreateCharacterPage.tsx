@@ -16,6 +16,8 @@ const CreateCharacterPage: React.FC = () => {
   const [hp, setHp] = useState(10);
   const [mp, setMp] = useState(10);
   const [gold, setGold] = useState(0);
+  const [xp, setXp] = useState(0);
+  const [proximoNivel, setProximoNivel] = useState(0);
   const [attributes, setAttributes] = useState({
     strength: { score: 10, bonus: 0 },
     dexterity: { score: 10, bonus: 0 },
@@ -64,6 +66,8 @@ const CreateCharacterPage: React.FC = () => {
         hp,
         mp,
         gold,
+        xp,
+        proximoNivel,
         attributes,
         inventory: inventory,
         abilities: abilities,
@@ -164,6 +168,26 @@ const CreateCharacterPage: React.FC = () => {
             id="gold"
             value={gold}
             onChange={(e) => setGold(parseInt(e.target.value, 10) || 0)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="xp">Experiência (XP)</label>
+          <input
+            type="number"
+            id="xp"
+            value={xp}
+            onChange={(e) => setXp(parseInt(e.target.value, 10) || 0)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="proximoNivel">Próximo Nível (ProXP)</label>
+          <input
+            type="number"
+            id="proximoNivel"
+            value={proximoNivel}
+            onChange={(e) => setProximoNivel(parseInt(e.target.value, 10) || 0)}
             required
           />
         </div>

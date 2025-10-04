@@ -29,6 +29,8 @@ interface CharacterSheetData {
   inspiration: number;
   perception: number;
   armorClass: number;
+  xp: number;
+  proximoNivel: number;
   attributes: {
     strength: Attribute | number;
     dexterity: Attribute | number;
@@ -219,53 +221,80 @@ const CharacterSheetPage: React.FC = () => {
             <div className="details-card">
               <h2 className="details-card-title">Recursos</h2>
               <div className="resources-grid">
-                <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/rnwnDxF.png)` }}>
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #2a0a0a, #5a1a1a)' }}>
                   <div className="resource-content">
                     <span className="resource-icon">❤️</span>
                     <span className="resource-value">{renderSafe(sheetData.hp)}</span>
                     <span className="resource-label">HP</span>
                   </div>
                 </div>
-                <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/wAJ7AOg.png)` }}>
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #0a2a2a, #1a5a5a)' }}>
                   <div className="resource-content">
                     <span className="resource-icon">💧</span>
                     <span className="resource-value">{renderSafe(sheetData.mp)}</span>
                     <span className="resource-label">MP</span>
                   </div>
                 </div>
-                <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/KwnQdw7.png)` }}>
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #2a2a0a, #5a5a1a)' }}>
                   <div className="resource-content">
                     <span className="resource-icon">💰</span>
                     <span className="resource-value">{renderSafe(sheetData.gold)}</span>
                     <span className="resource-label">Ouro</span>
                   </div>
                 </div>
-                <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/KwnQdw7.png)` }}>
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #2a2a0a, #5a5a1a)' }}>
                   <div className="resource-content">
                     <span className="resource-icon">🪙</span>
                     <span className="resource-value">{renderSafe(sheetData.silver)}</span>
                     <span className="resource-label">Prata</span>
                   </div>
                 </div>
-                <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/Q9jY8bM.png)` }}>
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #0a2a0a, #1a5a1a)' }}>
                   <div className="resource-content">
                     <span className="resource-icon">💡</span>
                     <span className="resource-value">{renderSafe(sheetData.inspiration)}</span>
                     <span className="resource-label">Inspiração</span>
                   </div>
                 </div>
-                <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/J3J9H1M.png)` }}>
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #0a0a2a, #1a1a5a)' }}>
                   <div className="resource-content">
                     <span className="resource-icon">👁️</span>
                     <span className="resource-value">{renderSafe(sheetData.perception)}</span>
                     <span className="resource-label">Percepção</span>
                   </div>
                 </div>
-                <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/p7x1Z3E.png)` }}>
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #2a0a2a, #5a1a5a)' }}>
                   <div className="resource-content">
                     <span className="resource-icon">🛡️</span>
                     <span className="resource-value">{renderSafe(sheetData.armorClass)}</span>
                     <span className="resource-label">CA</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="details-card">
+              <h2 className="details-card-title">Progressão</h2>
+              <div className="resources-grid">
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #2a2a0a, #5a5a1a)' }}>
+                  <div className="resource-content">
+                    <span className="resource-icon">🏆</span>
+                    <span className="resource-value">{renderSafe(sheetData.level)}</span>
+                    <span className="resource-label">Nível</span>
+                  </div>
+                </div>
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #0a2a0a, #1a5a1a)' }}>
+                  <div className="resource-content">
+                    <span className="resource-icon">⭐</span>
+                    <span className="resource-value">{renderSafe(sheetData.xp)}</span>
+                    <span className="resource-label">XP</span>
+                  </div>
+                </div>
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #0a0a2a, #1a1a5a)' }}>
+                  <div className="resource-content">
+                    <span className="resource-icon">🚀</span>
+                    <span className="resource-value">{renderSafe(sheetData.proximoNivel)}</span>
+                    <span className="resource-label">Próx. Nível</span>
                   </div>
                 </div>
               </div>

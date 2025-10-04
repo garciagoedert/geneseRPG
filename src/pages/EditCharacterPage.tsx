@@ -23,6 +23,8 @@ const EditCharacterPage: React.FC = () => {
   const [inspiration, setInspiration] = useState(0);
   const [perception, setPerception] = useState(0);
   const [armorClass, setArmorClass] = useState(0);
+  const [xp, setXp] = useState(0);
+  const [proximoNivel, setProximoNivel] = useState(0);
   const [attributes, setAttributes] = useState({
     strength: { score: 10, bonus: 0, skills: { atletismo: 0, briga: 0, forcaDeVontade: 0 } },
     dexterity: { score: 10, bonus: 0, skills: { acrobacia: 0, furtividade: 0, performance: 0 } },
@@ -66,6 +68,8 @@ const EditCharacterPage: React.FC = () => {
           setInspiration(data.inspiration || 0);
           setPerception(data.perception || 0);
           setArmorClass(data.armorClass || 0);
+          setXp(data.xp || 0);
+          setProximoNivel(data.proximoNivel || 0);
 
           // Lógica para retrocompatibilidade de atributos
           const loadedAttributes = JSON.parse(JSON.stringify(attributes)); // Deep copy
@@ -154,6 +158,8 @@ const EditCharacterPage: React.FC = () => {
         inspiration,
         perception,
         armorClass,
+        xp,
+        proximoNivel,
         attributes,
         inventory,
         equipment, // Adiciona equipamentos ao objeto de atualização
@@ -299,6 +305,26 @@ const EditCharacterPage: React.FC = () => {
             id="armorClass"
             value={armorClass}
             onChange={(e) => setArmorClass(parseInt(e.target.value, 10) || 0)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="xp">Experiência (XP)</label>
+          <input
+            type="number"
+            id="xp"
+            value={xp}
+            onChange={(e) => setXp(parseInt(e.target.value, 10) || 0)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="proximoNivel">Próximo Nível (ProXP)</label>
+          <input
+            type="number"
+            id="proximoNivel"
+            value={proximoNivel}
+            onChange={(e) => setProximoNivel(parseInt(e.target.value, 10) || 0)}
             required
           />
         </div>
