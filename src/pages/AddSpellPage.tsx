@@ -17,6 +17,11 @@ const AddSpellPage: React.FC = () => {
   const [description, setDescription] = useState('');
   const [range, setRange] = useState('');
   const [duration, setDuration] = useState('');
+  const [components, setComponents] = useState({
+    verbal: false,
+    somatic: false,
+    material: false,
+  });
   const [visibleToPlayers, setVisibleToPlayers] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +47,7 @@ const AddSpellPage: React.FC = () => {
         description,
         range,
         duration,
+        components,
         visibleToPlayers,
         createdAt: new Date(),
         imageUrl: finalImageUrl,
@@ -144,6 +150,36 @@ const AddSpellPage: React.FC = () => {
             onChange={(e) => setDuration(e.target.value)}
             placeholder="Ex: 1 minuto, Instantânea"
           />
+        </div>
+        <div className="form-section">
+          <h2 className="form-section-title">Componentes</h2>
+          <div className="checkbox-row">
+            <label htmlFor="verbal">Verbal</label>
+            <input
+              type="checkbox"
+              id="verbal"
+              checked={components.verbal}
+              onChange={() => setComponents(c => ({ ...c, verbal: !c.verbal }))}
+            />
+          </div>
+          <div className="checkbox-row">
+            <label htmlFor="somatic">Somático</label>
+            <input
+              type="checkbox"
+              id="somatic"
+              checked={components.somatic}
+              onChange={() => setComponents(c => ({ ...c, somatic: !c.somatic }))}
+            />
+          </div>
+          <div className="checkbox-row">
+            <label htmlFor="material">Material</label>
+            <input
+              type="checkbox"
+              id="material"
+              checked={components.material}
+              onChange={() => setComponents(c => ({ ...c, material: !c.material }))}
+            />
+          </div>
         </div>
         <div className="checkbox-container">
           <label htmlFor="visibleToPlayers">Visível para Jogadores?</label>

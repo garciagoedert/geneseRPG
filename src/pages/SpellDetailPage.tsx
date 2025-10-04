@@ -15,6 +15,11 @@ interface SpellData {
   description: string;
   range: string;
   duration: string;
+  components: {
+    verbal: boolean;
+    somatic: boolean;
+    material: boolean;
+  };
   imageUrl?: string;
 }
 
@@ -90,6 +95,16 @@ const SpellDetailPage: React.FC = () => {
       <div className="details-card">
         <h2 className="details-card-title">Duração</h2>
         <p>{spellData.duration}</p>
+      </div>
+
+      <div className="details-card">
+        <h2 className="details-card-title">Componentes</h2>
+        {Object.entries(spellData.components || {}).filter(([, value]) => value).map(([key]) => (
+          <div key={key} className="details-row">
+            <span>{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+            <span>Sim</span>
+          </div>
+        ))}
       </div>
     </div>
   );
