@@ -11,6 +11,7 @@ const EditCreaturePage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [name, setName] = useState('');
+  const [level, setLevel] = useState(1);
   const [description, setDescription] = useState('');
   const [stats, setStats] = useState('');
   const [hp, setHp] = useState(0);
@@ -32,6 +33,7 @@ const EditCreaturePage: React.FC = () => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setName(data.name);
+          setLevel(data.level || 1);
           setDescription(data.description);
           setStats(data.stats);
           setHp(data.hp || 0);
@@ -68,6 +70,7 @@ const EditCreaturePage: React.FC = () => {
       const docRef = doc(db, 'bestiary', id);
       await updateDoc(docRef, {
         name,
+        level,
         description,
         stats,
         hp,
@@ -103,6 +106,16 @@ const EditCreaturePage: React.FC = () => {
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="level">Nível</label>
+          <input
+            type="number"
+            id="level"
+            value={level}
+            onChange={(e) => setLevel(parseInt(e.target.value, 10) || 1)}
             required
           />
         </div>

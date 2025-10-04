@@ -8,6 +8,7 @@ import './DetailsPage.css'; // Usando o novo estilo padrão
 
 interface CreatureData {
   name: string;
+  level: number;
   description: string;
   hp: number;
   mp: number;
@@ -65,7 +66,10 @@ const CreatureDetailPage: React.FC = () => {
           />
         )}
         <div className="details-hero-content">
-          <h1>{creatureData.name}</h1>
+          <div>
+            <h1>{creatureData.name}</h1>
+            <p style={{ margin: 0, color: '#ccc' }}>Nível {creatureData.level}</p>
+          </div>
           {currentUser?.role === 'gm' && (
             <Link to={`/edit-creature/${id}`} className="details-edit-button">
               Editar
@@ -80,44 +84,44 @@ const CreatureDetailPage: React.FC = () => {
       </div>
 
       <div className="details-card">
-        <h2 className="details-card-title">Recursos</h2>
-        <div className="resources-grid">
-          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/rnwnDxF.png)` }}>
-            <div className="resource-content">
-              <span className="resource-icon">❤️</span>
-              <span className="resource-value">{creatureData.hp}</span>
-              <span className="resource-label">HP</span>
-            </div>
-          </div>
-          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/wAJ7AOg.png)` }}>
-            <div className="resource-content">
-              <span className="resource-icon">💧</span>
-              <span className="resource-value">{creatureData.mp}</span>
-              <span className="resource-label">MP</span>
-            </div>
-          </div>
-          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/KwnQdw7.png)` }}>
-            <div className="resource-content">
-              <span className="resource-icon">⚔️</span>
-              <span className="resource-value">{creatureData.atk}</span>
-              <span className="resource-label">ATK</span>
-            </div>
-          </div>
-          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/p7x1Z3E.png)` }}>
-            <div className="resource-content">
-              <span className="resource-icon">🛡️</span>
-              <span className="resource-value">{creatureData.ca}</span>
-              <span className="resource-label">CA</span>
-            </div>
-          </div>
-          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/Q9jY8bM.png)` }}>
-            <div className="resource-content">
-              <span className="resource-icon">✨</span>
-              <span className="resource-value">{creatureData.inc}</span>
-              <span className="resource-label">INC</span>
-            </div>
-          </div>
-        </div>
+              <h2 className="details-card-title">Recursos</h2>
+              <div className="resources-grid">
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #2a0a0a, #5a1a1a)' }}>
+                  <div className="resource-content">
+                    <span className="resource-icon">❤️</span>
+                    <span className="resource-value">{creatureData.hp}</span>
+                    <span className="resource-label">HP</span>
+                  </div>
+                </div>
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #0a2a2a, #1a5a5a)' }}>
+                  <div className="resource-content">
+                    <span className="resource-icon">💧</span>
+                    <span className="resource-value">{creatureData.mp}</span>
+                    <span className="resource-label">MP</span>
+                  </div>
+                </div>
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #2a2a0a, #5a5a1a)' }}>
+                  <div className="resource-content">
+                    <span className="resource-icon">⚔️</span>
+                    <span className="resource-value">{creatureData.atk}</span>
+                    <span className="resource-label">ATK</span>
+                  </div>
+                </div>
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #2a0a2a, #5a1a5a)' }}>
+                  <div className="resource-content">
+                    <span className="resource-icon">🛡️</span>
+                    <span className="resource-value">{creatureData.ca}</span>
+                    <span className="resource-label">CA</span>
+                  </div>
+                </div>
+                <div className="resource-item" style={{ background: 'linear-gradient(to top, #0a2a0a, #1a5a1a)' }}>
+                  <div className="resource-content">
+                    <span className="resource-icon">✨</span>
+                    <span className="resource-value">{creatureData.inc}</span>
+                    <span className="resource-label">INC</span>
+                  </div>
+                </div>
+              </div>
       </div>
 
       <div className="details-card">

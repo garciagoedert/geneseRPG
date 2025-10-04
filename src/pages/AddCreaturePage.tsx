@@ -10,6 +10,7 @@ const AddCreaturePage: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState('');
+  const [level, setLevel] = useState(1);
   const [description, setDescription] = useState('');
   const [stats, setStats] = useState('');
   const [hp, setHp] = useState(0);
@@ -35,6 +36,7 @@ const AddCreaturePage: React.FC = () => {
 
       await addDoc(collection(db, 'bestiary'), {
         name,
+        level,
         description,
         stats,
         hp,
@@ -67,6 +69,16 @@ const AddCreaturePage: React.FC = () => {
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="level">Nível</label>
+          <input
+            type="number"
+            id="level"
+            value={level}
+            onChange={(e) => setLevel(parseInt(e.target.value, 10) || 1)}
             required
           />
         </div>
