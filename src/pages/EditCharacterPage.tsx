@@ -15,6 +15,7 @@ const EditCharacterPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [name, setName] = useState('');
   const [characterClass, setCharacterClass] = useState('');
+  const [race, setRace] = useState('');
   const [level, setLevel] = useState(1);
   const [hp, setHp] = useState(10);
   const [mp, setMp] = useState(10);
@@ -60,6 +61,7 @@ const EditCharacterPage: React.FC = () => {
           }
           setName(data.name);
           setCharacterClass(data.class);
+          setRace(data.race || '');
           setLevel(data.level);
           setHp(data.hp || 10);
           setMp(data.mp || 10);
@@ -150,6 +152,7 @@ const EditCharacterPage: React.FC = () => {
       await updateDoc(docRef, {
         name,
         class: characterClass,
+        race,
         level,
         hp,
         mp,
@@ -214,6 +217,16 @@ const EditCharacterPage: React.FC = () => {
             id="characterClass"
             value={characterClass}
             onChange={(e) => setCharacterClass(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="race">Raça</label>
+          <input
+            type="text"
+            id="race"
+            value={race}
+            onChange={(e) => setRace(e.target.value)}
             required
           />
         </div>

@@ -281,6 +281,18 @@
   border: none;
 }
 
+.character-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #ccc;
+  margin-top: 0.5rem;
+}
+
+.character-subtitle .separator {
+  color: #555;
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
   .attribute-row, .skill-row {

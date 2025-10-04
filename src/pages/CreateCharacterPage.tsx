@@ -12,6 +12,7 @@ const CreateCharacterPage: React.FC = () => {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [characterClass, setCharacterClass] = useState('');
+  const [race, setRace] = useState('');
   const [level, setLevel] = useState(1);
   const [hp, setHp] = useState(10);
   const [mp, setMp] = useState(10);
@@ -62,6 +63,7 @@ const CreateCharacterPage: React.FC = () => {
       await addDoc(collection(db, 'characterSheets'), {
         name,
         class: characterClass,
+        race,
         level,
         hp,
         mp,
@@ -118,6 +120,16 @@ const CreateCharacterPage: React.FC = () => {
             id="characterClass"
             value={characterClass}
             onChange={(e) => setCharacterClass(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="race">Raça</label>
+          <input
+            type="text"
+            id="race"
+            value={race}
+            onChange={(e) => setRace(e.target.value)}
             required
           />
         </div>

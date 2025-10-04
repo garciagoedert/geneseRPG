@@ -21,6 +21,7 @@ interface Attribute {
 interface CharacterSheetData {
   name: string;
   class: string;
+  race: string;
   level: number;
   hp: number;
   mp: number;
@@ -187,7 +188,13 @@ const CharacterSheetPage: React.FC = () => {
         <div className="details-hero-content">
           <div>
             <h1>{renderSafe(sheetData.name)}</h1>
-            <p style={{ margin: 0, color: '#ccc' }}>{renderSafe(sheetData.class)} - Nível {renderSafe(sheetData.level)}</p>
+            <div className="character-subtitle">
+              <span>{renderSafe(sheetData.race)}</span>
+              <span className="separator">|</span>
+              <span>{renderSafe(sheetData.class)}</span>
+              <span className="separator">|</span>
+              <span>Nível {renderSafe(sheetData.level)}</span>
+            </div>
           </div>
           <div className="hero-actions">
             {isOwnerOrGM && !isRepositioning && (
