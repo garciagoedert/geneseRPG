@@ -15,11 +15,9 @@ const EditCreaturePage: React.FC = () => {
   const [stats, setStats] = useState('');
   const [hp, setHp] = useState(0);
   const [mp, setMp] = useState(0);
-  const [gold, setGold] = useState(0);
-  const [silver, setSilver] = useState(0);
-  const [inspiration, setInspiration] = useState(0);
-  const [perception, setPerception] = useState(0);
-  const [armorClass, setArmorClass] = useState(0);
+  const [atk, setAtk] = useState(0);
+  const [ca, setCa] = useState(0);
+  const [inc, setInc] = useState(0);
   const [visibleToPlayers, setVisibleToPlayers] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -38,11 +36,9 @@ const EditCreaturePage: React.FC = () => {
           setStats(data.stats);
           setHp(data.hp || 0);
           setMp(data.mp || 0);
-          setGold(data.gold || 0);
-          setSilver(data.silver || 0);
-          setInspiration(data.inspiration || 0);
-          setPerception(data.perception || 0);
-          setArmorClass(data.armorClass || 0);
+          setAtk(data.atk || 0);
+          setCa(data.ca || 0);
+          setInc(data.inc || 0);
           setVisibleToPlayers(data.visibleToPlayers);
           setImageUrl(data.imageUrl || '');
         } else {
@@ -76,11 +72,9 @@ const EditCreaturePage: React.FC = () => {
         stats,
         hp,
         mp,
-        gold,
-        silver,
-        inspiration,
-        perception,
-        armorClass,
+        atk,
+        ca,
+        inc,
         visibleToPlayers,
         imageUrl: finalImageUrl,
       });
@@ -142,28 +136,20 @@ const EditCreaturePage: React.FC = () => {
             <input type="number" id="mp" value={mp} onChange={(e) => setMp(parseInt(e.target.value, 10))} />
           </div>
           <div className="stat-item">
-            <label htmlFor="gold">Ouro</label>
-            <input type="number" id="gold" value={gold} onChange={(e) => setGold(parseInt(e.target.value, 10))} />
+            <label htmlFor="atk">ATK</label>
+            <input type="number" id="atk" value={atk} onChange={(e) => setAtk(parseInt(e.target.value, 10))} />
           </div>
           <div className="stat-item">
-            <label htmlFor="silver">Prata</label>
-            <input type="number" id="silver" value={silver} onChange={(e) => setSilver(parseInt(e.target.value, 10))} />
+            <label htmlFor="ca">CA</label>
+            <input type="number" id="ca" value={ca} onChange={(e) => setCa(parseInt(e.target.value, 10))} />
           </div>
           <div className="stat-item">
-            <label htmlFor="inspiration">Inspiração</label>
-            <input type="number" id="inspiration" value={inspiration} onChange={(e) => setInspiration(parseInt(e.target.value, 10))} />
-          </div>
-          <div className="stat-item">
-            <label htmlFor="perception">Percepção</label>
-            <input type="number" id="perception" value={perception} onChange={(e) => setPerception(parseInt(e.target.value, 10))} />
-          </div>
-          <div className="stat-item">
-            <label htmlFor="armorClass">Classe de Armadura</label>
-            <input type="number" id="armorClass" value={armorClass} onChange={(e) => setArmorClass(parseInt(e.target.value, 10))} />
+            <label htmlFor="inc">INC</label>
+            <input type="number" id="inc" value={inc} onChange={(e) => setInc(parseInt(e.target.value, 10))} />
           </div>
         </div>
         <div>
-          <label htmlFor="stats">Bloco de Estatísticas</label>
+          <label htmlFor="stats">Bloco de detalhes</label>
           <textarea
             id="stats"
             value={stats}

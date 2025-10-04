@@ -11,11 +11,9 @@ interface CreatureData {
   description: string;
   hp: number;
   mp: number;
-  gold: number;
-  silver: number;
-  inspiration: number;
-  perception: number;
-  armorClass: number;
+  atk: number;
+  ca: number;
+  inc: number;
   stats: string;
   imageUrl?: string;
 }
@@ -100,44 +98,30 @@ const CreatureDetailPage: React.FC = () => {
           </div>
           <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/KwnQdw7.png)` }}>
             <div className="resource-content">
-              <span className="resource-icon">💰</span>
-              <span className="resource-value">{creatureData.gold}</span>
-              <span className="resource-label">Ouro</span>
-            </div>
-          </div>
-          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/KwnQdw7.png)` }}>
-            <div className="resource-content">
-              <span className="resource-icon">🪙</span>
-              <span className="resource-value">{creatureData.silver}</span>
-              <span className="resource-label">Prata</span>
-            </div>
-          </div>
-          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/Q9jY8bM.png)` }}>
-            <div className="resource-content">
-              <span className="resource-icon">💡</span>
-              <span className="resource-value">{creatureData.inspiration}</span>
-              <span className="resource-label">Inspiração</span>
-            </div>
-          </div>
-          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/J3J9H1M.png)` }}>
-            <div className="resource-content">
-              <span className="resource-icon">👁️</span>
-              <span className="resource-value">{creatureData.perception}</span>
-              <span className="resource-label">Percepção</span>
+              <span className="resource-icon">⚔️</span>
+              <span className="resource-value">{creatureData.atk}</span>
+              <span className="resource-label">ATK</span>
             </div>
           </div>
           <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/p7x1Z3E.png)` }}>
             <div className="resource-content">
               <span className="resource-icon">🛡️</span>
-              <span className="resource-value">{creatureData.armorClass}</span>
+              <span className="resource-value">{creatureData.ca}</span>
               <span className="resource-label">CA</span>
+            </div>
+          </div>
+          <div className="resource-item" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(https://i.imgur.com/Q9jY8bM.png)` }}>
+            <div className="resource-content">
+              <span className="resource-icon">✨</span>
+              <span className="resource-value">{creatureData.inc}</span>
+              <span className="resource-label">INC</span>
             </div>
           </div>
         </div>
       </div>
 
       <div className="details-card">
-        <h2 className="details-card-title">Estatísticas</h2>
+        <h2 className="details-card-title">Bloco de detalhes</h2>
         <pre className="details-pre">{creatureData.stats}</pre>
       </div>
     </div>
