@@ -16,6 +16,7 @@ const EditSpellPage: React.FC = () => {
   const [className, setClassName] = useState('');
   const [level, setLevel] = useState(0);
   const [description, setDescription] = useState('');
+  const [range, setRange] = useState('');
   const [visibleToPlayers, setVisibleToPlayers] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +36,7 @@ const EditSpellPage: React.FC = () => {
           setClassName(data.className || '');
           setLevel(data.level);
           setDescription(data.description);
+          setRange(data.range || '');
           setVisibleToPlayers(data.visibleToPlayers);
           setImageUrl(data.imageUrl || '');
         } else {
@@ -69,6 +71,7 @@ const EditSpellPage: React.FC = () => {
         className,
         level,
         description,
+        range,
         visibleToPlayers,
         imageUrl: finalImageUrl,
       });
@@ -154,6 +157,16 @@ const EditSpellPage: React.FC = () => {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={10}
+          />
+        </div>
+        <div>
+          <label htmlFor="range">Alcance</label>
+          <input
+            type="text"
+            id="range"
+            value={range}
+            onChange={(e) => setRange(e.target.value)}
+            placeholder="Ex: 30 metros, Toque"
           />
         </div>
         <div className="checkbox-container">

@@ -13,6 +13,7 @@ interface SpellData {
   actionType: string;
   className: string;
   description: string;
+  range: string;
   imageUrl?: string;
 }
 
@@ -78,6 +79,11 @@ const SpellDetailPage: React.FC = () => {
       <div className="details-card">
         <h2 className="details-card-title">Descrição</h2>
         <pre className="details-pre">{spellData.description}</pre>
+      </div>
+
+      <div className="details-card">
+        <h2 className="details-card-title">Alcance</h2>
+        <p>{spellData.range}</p>
       </div>
     </div>
   );
