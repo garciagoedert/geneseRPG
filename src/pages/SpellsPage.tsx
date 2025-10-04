@@ -25,6 +25,8 @@ const SpellsPage: React.FC = () => {
   const [filteredSpells, setFilteredSpells] = useState<Spell[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClass, setSelectedClass] = useState('');
+  const [classes, setClasses] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null);
 
@@ -69,6 +71,14 @@ const SpellsPage: React.FC = () => {
         finalSpellList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Spell));
       }
       
+      const uniqueClasses = Array.from(
+        new Set(
+          finalSpellList
+            .flatMap(spell => spell.className ? spell.className.split(',').map(c => c.trim()) : [])
+            .filter(Boolean)
+        )
+      );
+      setClasses(uniqueClasses.sort());
       setSpells(finalSpellList);
       setFilteredSpells(finalSpellList);
     } catch (error) {
@@ -83,11 +93,15 @@ const SpellsPage: React.FC = () => {
   }, [currentUser]);
 
   useEffect(() => {
-    const results = spells.filter(spell =>
-      spell.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const results = spells.filter(spell => {
+      const searchTermMatch = spell.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const classMatch = selectedClass 
+        ? spell.className && spell.className.split(',').map(c => c.trim()).includes(selectedClass)
+        : true;
+      return searchTermMatch && classMatch;
+    });
     setFilteredSpells(results);
-  }, [searchTerm, spells]);
+  }, [searchTerm, selectedClass, spells]);
 
   const toggleVisibility = async (id: string, currentVisibility: boolean) => {
     const spellRef = doc(db, 'spellsAndAbilities', id);
@@ -124,6 +138,12 @@ const SpellsPage: React.FC = () => {
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
+      <select onChange={(e) => setSelectedClass(e.target.value)} value={selectedClass} className="filter-dropdown">
+        <option value="">Todas as Classes</option>
+        {classes.map(className => (
+          <option key={className} value={className}>{className}</option>
+        ))}
+      </select>
       <div className="character-list">
         {filteredSpells.length > 0 ? (
           filteredSpells.map(spell => (
